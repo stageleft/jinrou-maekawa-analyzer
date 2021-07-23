@@ -1,36 +1,32 @@
 {
-
   "manifest_version": 2,
-  "name": "Jinrou Wakamete Analyzer",
-  "version": "2.0",
+  "name": "Jinrou Maekawa Analyzer",
+  "version": "1.0",
 
-  "description": "Realtime Log Analyzer of Jinrou Wakamete Server.",
+  "description": "Realtime Log Analyzer of Jinrou Maekawa Server.",
 
   "icons": {
-    "48": "icons/wakame-te.svg",
-    "96": "icons/wakame-te.svg"
+    "48": "icons/miku-maekawa.svg",
+    "96": "icons/miku-maekawa.svg"
   },
 
   "sidebar_action": {
-    "default_title": "Jinrou Wakamete Analyzer",
+    "default_title": "Jinrou Maekawa Analyzer",
     "default_panel": "sidebar.html",
-    "default_icon": "icons/wakame-te.svg"
+    "default_icon": "icons/miku-maekawa.svg"
   },
 
   "content_scripts": [
     {
-      "matches": ["*://*/~jinrou/",
-                  "*://*/~jinrou/index.html",
-                  "*://*/~jinrou/cgi_jinro.cgi*",
-                  "*://*/~jinrou/kako/*.html",
-                  "file:///*/jinrou-wakamete-analyzer.debug-data/sample/*.html"],
-      "js": ["wakamete-plugins.js"]
+      "matches": ["*://alicegame.xsrv.jp/takane/*.php*",
+                  "file:///*/jinrou-maekawa-analyzer.debug-data/sample/*.html"],
+      "js": ["maekawa-plugins.js"]
     }
   ],
 
   "applications": {
     "gecko": {
-      "id": "jinrou-wakamete-analyzer@elder-alliance.org"
+      "id": "jinrou-maekawa-analyzer@elder-alliance.org"
     }
   }
 }
