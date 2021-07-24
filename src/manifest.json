@@ -6,14 +6,17 @@
   "description": "Realtime Log Analyzer of Jinrou Maekawa Server.",
 
   "icons": {
-    "48": "icons/miku-maekawa.svg",
-    "96": "icons/miku-maekawa.svg"
+    "48": "miku-maekawa.svg",
+    "96": "miku-maekawa.svg"
   },
 
   "sidebar_action": {
     "default_title": "Jinrou Maekawa Analyzer",
     "default_panel": "sidebar.html",
-    "default_icon": "icons/miku-maekawa.svg"
+    "default_icon": {
+      "16": "miku-maekawa.svg",
+      "32": "miku-maekawa.svg"
+    }
   },
 
   "content_scripts": [

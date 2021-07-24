@@ -60,8 +60,7 @@ function recvLog_proc(request, sender, sendResponse) {
     // exception case
     //   (1) re-login to village: html2json_village_log() must be aborted.
     //   (2) illegal case
-    console.log(e.name + ':' + e.message);
-    console.log(e.stack);
+    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
   }
   // update input table
   try {
@@ -71,8 +70,7 @@ function recvLog_proc(request, sender, sendResponse) {
   } catch(e) {
     // exception case
     //   (1) no log
-    console.log(e.name + ':' + e.message);
-    console.log(e.stack);  
+    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
   };
   try {
     updateInputField(value[village_number]);
@@ -80,16 +78,14 @@ function recvLog_proc(request, sender, sendResponse) {
     // exception case
     //   (1) 事件前日
     //   (2) illegal case
-    console.log(e.name + ':' + e.message);
-    console.log(e.stack);
+    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
     // refresh input field for recovery.
     try {
       refreshInputField(value[village_number]);
     } catch(e) {
       // exception case
       //   (1) no log
-      console.log(e.name + ':' + e.message);
-      console.log(e.stack);  
+      console.log(e.name + ':' + e.message + "\r\n" + e.stack);
     };
   }
   try {
@@ -98,8 +94,7 @@ function recvLog_proc(request, sender, sendResponse) {
     // exception case
     //   (1) 事件前日
     //   (2) illegal case
-    console.log(e.name + ':' + e.message);
-    console.log(e.stack);
+    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
   }
 
   // update
@@ -115,8 +110,7 @@ function recvLog_proc(request, sender, sendResponse) {
     };
   } catch(e) {
     // exception case
-    console.log(e.name + ':' + e.message);
-    console.log(e.stack);
+    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
   }
 
   // save to memory area
@@ -141,7 +135,7 @@ function recvLog_proc(request, sender, sendResponse) {
       window.localStorage.setItem("wakamete_village_raw_log", encodeURIComponent(JSON.stringify(stored_raw_log)));
     }
   } catch (e) {
-    console.log ('raw_log save error : ' + e.name + ' : ' + e.message + ' : ' + e.stack);
+    console.log ('raw_log save error : ' + e.name + ' : ' + e.message + "\r\n" + e.stack);
     // nop : ignore disk write error
   }
   // save value to Web Storaget API
@@ -161,7 +155,7 @@ function recvLog_proc(request, sender, sendResponse) {
       window.localStorage.setItem("wakamete_village_info", encodeURIComponent(JSON.stringify(stored_value)));
     }
   } catch {
-    console.log ('raw_log save error : ' + e.name + ' : ' + e.message + ' : ' + e.stack);
+    console.log ('stored_value save error : ' + e.name + ' : ' + e.message + "\r\n" + e.stack);
     // nop : ignore disk write error
   }
 
