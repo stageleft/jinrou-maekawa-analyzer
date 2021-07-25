@@ -39,94 +39,94 @@ function html2json_village_log(arg) {
     ret.log[log_by_day].players = {};
     if (talk_sections.length < 2) {
       // if multi days log
-      // TODO: fix player_list in each day
+      // TODO: fix players["each_player"].stat in each day
+      var datearray;
+      var base_date;
+      [datearray, base_date] = createDateArray(ret);
+      if ((datearray == null) || (datearray.length == 0)){
+        return;
+      }
+      Object.keys(player_list).forEach(function(k){
+        player_list[k].stat = "（生存中）";
+      });
+      /*
+      datearray.forEach(function(d){
+        if (d == "１日目の朝となりました。") {
+          ret.log[d].players = {};
+          Object.assign(ret.log[d].players, player_list);
+          return;
+        } else if ((d != logTag_d2n(d)) && (ret.log[logTag_d2n(d)] != null)) {
+          var p = datearray[datearray.indexOf(d) - 1];
+          // set player_list into current log
+          // (n-1)th Nighttime: calc player_list of 1 day ago from ret.log[l].list_*
+          var n = logTag_d2n(d);
+          ret.log[n].players = {};
+          Object.keys(player_list).forEach(function(k){
+            ret.log[n].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
+            if (ret.log[p].players[k].stat == "（生存中）") {
+              ret.log[n].players[k].stat = "（生存中）";
+              if ((ret.log[n].list_bitten.includes(k) == true) ||
+                  (ret.log[n].list_voted.includes(k) == true) || 
+                  (ret.log[n].list_sudden.includes(k) == true) || 
+                  (ret.log[n].list_dnoted.includes(k) == true) || 
+                  (ret.log[n].list_cursed.includes(k) == true)) {
+                ret.log[n].players[k].stat = "（死　亡）";
+              }
+            } else {
+              ret.log[n].players[k].stat = "（死　亡）";
+              if ((ret.log[n].list_revived.includes(k) == true)) {
+                ret.log[n].players[k].stat = "（生存中）";
+              }
+            }
+          });
+          // nth Daytime: calc player_list of 1 day ago from ret.log[l].list_*
+          ret.log[d].players = {};
+          Object.keys(player_list).forEach(function(k){
+            ret.log[d].players[k] = {icon:ret.log[n].players[k].icon, stat:""};
+            if (ret.log[n].players[k].stat == "（生存中）") {
+              ret.log[d].players[k].stat = "（生存中）";
+              if ((ret.log[d].list_bitten.includes(k) == true) ||
+                  (ret.log[d].list_voted.includes(k) == true) || 
+                  (ret.log[d].list_sudden.includes(k) == true) || 
+                  (ret.log[d].list_dnoted.includes(k) == true) || 
+                  (ret.log[d].list_cursed.includes(k) == true)) {
+                ret.log[d].players[k].stat = "（死　亡）";
+              }
+            } else {
+              ret.log[d].players[k].stat = "（死　亡）";
+              if ((ret.log[d].list_revived.includes(k) == true)) {
+                ret.log[d].players[k].stat = "（生存中）";
+              }
+            }
+          });
+        } else {
+          var p = datearray[datearray.indexOf(d) - 1];
+          ret.log[d].players = {};
+          Object.keys(player_list).forEach(function(k){
+            ret.log[d].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
+            if (ret.log[p].players[k].stat == "（生存中）") {
+              ret.log[d].players[k].stat = "（生存中）";
+              if ((ret.log[d].list_bitten.includes(k) == true) ||
+                  (ret.log[d].list_voted.includes(k) == true) || 
+                  (ret.log[d].list_sudden.includes(k) == true) || 
+                  (ret.log[d].list_dnoted.includes(k) == true) || 
+                  (ret.log[d].list_cursed.includes(k) == true)) {
+                ret.log[d].players[k].stat = "（死　亡）";
+              }
+            } else {
+              ret.log[d].players[k].stat = "（死　亡）";
+              if ((ret.log[d].list_revived.includes(k) == true)) {
+                ret.log[d].players[k].stat = "（生存中）";
+              }
+            }
+          });
+        }
+      });
+      */
     }
     Object.assign(ret.log[log_by_day].players, player_list);
   });
-    // multi days log
-    /*
-    var datearray;
-    var base_date;
-    [datearray, base_date] = createDateArray(ret);
-    if ((datearray == null) || (datearray.length == 0)){
-      return;
-    }
-    Object.keys(player_list).forEach(function(k){
-      player_list[k].stat = "（生存中）";
-    });
-    datearray.forEach(function(d){
-      if (d == "１日目の朝となりました。") {
-        ret.log[d].players = {};
-        Object.assign(ret.log[d].players, player_list);
-        return;
-      } else if ((d != logTag_d2n(d)) && (ret.log[logTag_d2n(d)] != null)) {
-        var p = datearray[datearray.indexOf(d) - 1];
-        // set player_list into current log
-        // (n-1)th Nighttime: calc player_list of 1 day ago from ret.log[l].list_*
-        var n = logTag_d2n(d);
-        ret.log[n].players = {};
-        Object.keys(player_list).forEach(function(k){
-          ret.log[n].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
-          if (ret.log[p].players[k].stat == "（生存中）") {
-            ret.log[n].players[k].stat = "（生存中）";
-            if ((ret.log[n].list_bitten.includes(k) == true) ||
-                (ret.log[n].list_voted.includes(k) == true) || 
-                (ret.log[n].list_sudden.includes(k) == true) || 
-                (ret.log[n].list_dnoted.includes(k) == true) || 
-                (ret.log[n].list_cursed.includes(k) == true)) {
-              ret.log[n].players[k].stat = "（死　亡）";
-            }
-          } else {
-            ret.log[n].players[k].stat = "（死　亡）";
-            if ((ret.log[n].list_revived.includes(k) == true)) {
-              ret.log[n].players[k].stat = "（生存中）";
-            }
-          }
-        });
-        // nth Daytime: calc player_list of 1 day ago from ret.log[l].list_*
-        ret.log[d].players = {};
-        Object.keys(player_list).forEach(function(k){
-          ret.log[d].players[k] = {icon:ret.log[n].players[k].icon, stat:""};
-          if (ret.log[n].players[k].stat == "（生存中）") {
-            ret.log[d].players[k].stat = "（生存中）";
-            if ((ret.log[d].list_bitten.includes(k) == true) ||
-                (ret.log[d].list_voted.includes(k) == true) || 
-                (ret.log[d].list_sudden.includes(k) == true) || 
-                (ret.log[d].list_dnoted.includes(k) == true) || 
-                (ret.log[d].list_cursed.includes(k) == true)) {
-              ret.log[d].players[k].stat = "（死　亡）";
-            }
-          } else {
-            ret.log[d].players[k].stat = "（死　亡）";
-            if ((ret.log[d].list_revived.includes(k) == true)) {
-              ret.log[d].players[k].stat = "（生存中）";
-            }
-          }
-        });
-      } else {
-        var p = datearray[datearray.indexOf(d) - 1];
-        ret.log[d].players = {};
-        Object.keys(player_list).forEach(function(k){
-          ret.log[d].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
-          if (ret.log[p].players[k].stat == "（生存中）") {
-            ret.log[d].players[k].stat = "（生存中）";
-            if ((ret.log[d].list_bitten.includes(k) == true) ||
-                (ret.log[d].list_voted.includes(k) == true) || 
-                (ret.log[d].list_sudden.includes(k) == true) || 
-                (ret.log[d].list_dnoted.includes(k) == true) || 
-                (ret.log[d].list_cursed.includes(k) == true)) {
-              ret.log[d].players[k].stat = "（死　亡）";
-            }
-          } else {
-            ret.log[d].players[k].stat = "（死　亡）";
-            if ((ret.log[d].list_revived.includes(k) == true)) {
-              ret.log[d].players[k].stat = "（生存中）";
-            }
-          }
-        });
-      }
-    });
-    */
+
   return ret;
 };
 
@@ -147,25 +147,21 @@ function html2json_villager_list(arg) {
   for (var i = 0 ; i < base_td_list.length ; i = i + 2) {
     // style of base_td_list.item(i)  :
     //   <img src="link of image" title="comment of player"><br>
-    var img_src;
     // style of base_td_list.item(i+1):
     //   character name<br>
     //   (player name (◆<br>with TRIP))<br> (option)
     //   [character JOB]<br>                (option)
     //   （Alive Status）
     // ignore player name, JOB.
-    var character_name;
-    var is_alive;
 
     // get info of base_td_list.item(i)
     var img_selector = base_td_list.item(i).querySelector("img");
     if (img_selector != null) {
-      img_src        = img_selector.getAttribute("src").replace(re, "http://alicegame.xsrv.jp/takane/");
+      var img_src        = img_selector.getAttribute("src").replace(re, "http://alicegame.xsrv.jp/takane/");
 
       // get info of base_td_list.item(i+1)
-      var character_info = String(base_td_list.item(i+1).innerHTML).split('<br>');
-      character_name = character_info[0].trim();
-      is_alive       = character_info[character_info.length - 1];
+      var character_name = base_td_list.item(i+1).childNodes[1].textContent;
+      var is_alive       = base_td_list.item(i+1).childNodes[7].textContent;
 
       // create Hash and add to Array
       ret[character_name] = { icon:img_src , stat: is_alive };
