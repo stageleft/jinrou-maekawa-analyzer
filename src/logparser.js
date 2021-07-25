@@ -46,7 +46,7 @@ function html2json_village_log(arg) {
       if ((datearray == null) || (datearray.length == 0)){
         return;
       }
-      Object.keys(player_list).forEach(function(k){
+      Object.keys(player_list).forEach(k => {
         player_list[k].stat = "（生存中）";
       });
       /*
@@ -160,8 +160,10 @@ function html2json_villager_list(arg) {
       var img_src        = img_selector.getAttribute("src").replace(re, "http://alicegame.xsrv.jp/takane/");
 
       // get info of base_td_list.item(i+1)
-      var character_name = base_td_list.item(i+1).childNodes[1].textContent;
-      var is_alive       = base_td_list.item(i+1).childNodes[7].textContent;
+      var nodes = base_td_list.item(i+1).childNodes;
+      // var character_color = nodes[0].getAttribute("color");
+      var character_name = nodes[1].textContent;
+      var is_alive       = nodes[nodes.length - 1].textContent; // nodes[3] if game log, nodes[7] if passed log
 
       // create Hash and add to Array
       ret[character_name] = { icon:img_src , stat: is_alive };
@@ -320,8 +322,12 @@ function html2log(arg) {
         var v_comtype = null;
         td_list.forEach(td => {
           if (td.getAttribute("class") == "user-name") {
-            // <td class="user-name"><font color="#CC0033">◆</font>ナイスネイチャ</td>
-            villager = td.childNodes[1].textContent;
+            if (td.childNodes.length == 2) { // case if 
+              // <td class="user-name"><font color="#CC0033">◆</font>ナイスネイチャ</td>
+              villager = td.childNodes[1].textContent;
+            }
+            // else nop.
+            // <td class="user-name">狼の遠吠え</td>
           } else {
             v_comment = String(td.innerHTML).replace(/<br>/g,"\n").replace(/^「/,"").replace(/」$/,"").split('\n');
             if (td.getAttribute("class") == "say normal") {
