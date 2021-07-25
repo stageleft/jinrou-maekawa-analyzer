@@ -80,7 +80,7 @@ function template_freemason(arg) {
       } else if (arg.input.each_player[k].comingout == "狩人") {
         ret.push("指定：" + k + " LWCO|妖狐COありますか？");
         ret.push("護衛指示：" + k + "は  護衛でお願いします。");
-      } else if (arg.input.each_player[k].comingout == "猫又") {
+      } else if (arg.input.each_player[k].comingout == "埋毒") {
         ret.push("指定：" + k + " LWCO|妖狐COありますか？");
       }
     }

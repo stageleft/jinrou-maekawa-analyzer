@@ -8,7 +8,7 @@
 * メイン画面を 前川鯖 http://alicegame.xsrv.jp/takane/ 上の村とする。
 * サイドバーを用いて、メイン画面と同じ画面に別ペインを得る。
 
-本プロジェクトは、 jinrou-wakamete-analyzer https://github.com/stageleft/jinrou-wakamete-analyzer をフォークしたものであり、
+本プロジェクトは、 [jinrou-wakamete-analyzer](https://github.com/stageleft/jinrou-wakamete-analyzer) をフォークしたものであり、
 基本的には上記プロジェクトに従うが、前川鯖特有のカスタマイズが必要となる部分がある。
 
 ## 前川鯖について
@@ -44,4 +44,3 @@ width: 200px;
 * スクロール状態の固定化機能も、上記 meta タグにより実現されている様子なので不要と判断する。（旧 wakamete-plugins.js）。 → 削除済み。
 
 * シングルページのみであり、フレーム対応は不要である。（旧 wakamete-plugins.js）。 → 削除済み。
-

@@ -112,7 +112,7 @@ function setColorClass(player_info){
   if (player_info.enemymark == "妖狐") {
     return 'werefox';
   }
-  if (player_info.enemymark == "子狐") {
+  if (player_info.enemymark == "ＱＰ") {
     return 'minifox';
   }
   // 役職CO者の名前に色をつける
@@ -128,7 +128,7 @@ function setColorClass(player_info){
   if (player_info.comingout == "共有") {
     return 'freemason';
   }
-  if (player_info.comingout == "猫又") {
+  if (player_info.comingout == "埋毒") {
     return 'werecat';
   }
   return '';
@@ -194,7 +194,7 @@ function makeComingOutList(arg) {
       ret.posessed_mark[k] = arg.input.each_player[k];
     } else if (mrk == "妖狐") {
       ret.werefox_mark[k]  = arg.input.each_player[k];
-    } else if (mrk == "子狐") {
+    } else if (mrk == "ＱＰ") {
       ret.minifox_mark[k]  = arg.input.each_player[k];
     } else if (mrk == "人外") {
       ret.enemy_mark[k]    = arg.input.each_player[k];
@@ -206,7 +206,7 @@ function makeComingOutList(arg) {
       ret.bodyguard_co[k]  = arg.input.each_player[k];
     } else if (job == "共有") {
       ret.freemason_co[k]  = arg.input.each_player[k];
-    } else if (job == "猫又") {
+    } else if (job == "埋毒") {
       ret.werecat_co[k]    = arg.input.each_player[k];
     } else if (stat == "（生存中）") { // (mrk == "村人") && (job == "村人")
         ret.villager_co[k] = arg.input.each_player[k];

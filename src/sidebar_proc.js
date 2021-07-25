@@ -10,7 +10,7 @@ var stored_raw_log = {};
 function recvLog_proc(request, sender, sendResponse) {
 // input  : JSON
 //          style : { html_log: village_log_html, text_log: village_log_text, txtc_log: village_log_txtC }
-//          see onLogLoad() in wakamete-plugins.js
+//          see onLogLoad() in maekawa-plugins.js
 // output : JSON (fixed value)
 //          {response: "OK"}
   if (recvLog_lock == false) {
@@ -33,7 +33,7 @@ function recvLog_proc(request, sender, sendResponse) {
   var raw_log             = JSON.parse(JSON.stringify(stored_raw_log)); // deep copy
   var stored_raw_log_prev = JSON.parse(JSON.stringify(stored_raw_log)); // deep copy
 
-  // Parse and Update wakamete village log
+  // Parse and Update village log
   var is_same_village = true;
   try {
      var parser = new DOMParser();

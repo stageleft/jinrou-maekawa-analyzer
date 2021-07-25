@@ -1,31 +1,36 @@
-var job_list = ["村人","占い","霊能","狩人","共有","猫又"];
-var mob_list = ["村人","人外","人狼","狂人","妖狐","子狐"];
+var job_list = ["村人","占い","霊能","狩人","共有","埋毒"];
+var mob_list = ["村人","人外","人狼","狂人","妖狐","ＱＰ"];
 var seer_result = ["","○","●"];
 var medium_result = ["","○","●","△","■"];
+const cast_list_start = 4;
 var cast_list = [
-  {seer:1, medium:0, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:0, werefox:0, minifox:0}, //  8 villager without werefox
-  {seer:1, medium:1, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:0, werefox:0, minifox:0}, //  9 villager without werefox
-  {seer:1, medium:1, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 10 villager without werefox
-  {seer:1, medium:1, bodyguard:1, freemason:0, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 11 villager without werefox
-  {seer:1, medium:1, bodyguard:1, freemason:0, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 12 villager with increased werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 13 villager with increased werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 14 villager with werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 15 villager with werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 16 villager with werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 17 villager with werefox
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:3, posessed:1, werefox:1, minifox:0}, // 18 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:3, posessed:1, werefox:1, minifox:0}, // 19 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:4, posessed:1, werefox:1, minifox:0}, // 20 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:4, posessed:1, werefox:1, minifox:0}, // 21 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:4, posessed:1, werefox:2, minifox:0}, // 22 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:4, posessed:1, werefox:2, minifox:0}, // 23 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:4, posessed:1, werefox:2, minifox:0}, // 24 villager with werecat
-  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:5, posessed:1, werefox:2, minifox:0}, // 25 villager with werecat
-  {seer:2, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:5, posessed:1, werefox:3, minifox:0}, // 26 villager with werecat
-  {seer:2, medium:1, bodyguard:1, freemason:2, werecat:1, werewolf:5, posessed:1, werefox:3, minifox:0}, // 27 villager with werecat
-  {seer:2, medium:1, bodyguard:1, freemason:3, werecat:1, werewolf:5, posessed:2, werefox:3, minifox:0}, // 28 villager with werecat
-  {seer:2, medium:1, bodyguard:1, freemason:3, werecat:1, werewolf:6, posessed:2, werefox:3, minifox:0}, // 29 villager with werecat
-  {seer:2, medium:1, bodyguard:2, freemason:3, werecat:1, werewolf:7, posessed:2, werefox:3, minifox:0}, // 30 villager with werecat
+  {seer:1, medium:0, bodyguard:0, freemason:0, werecat:0, werewolf:1, posessed:1, werefox:0, minifox:0}, //  4 villager
+  {seer:2, medium:0, bodyguard:0, freemason:0, werecat:0, werewolf:1, posessed:2, werefox:0, minifox:0}, //  5 villager
+  {seer:1, medium:0, bodyguard:0, freemason:0, werecat:1, werewolf:1, posessed:0, werefox:1, minifox:0}, //  6 villager
+  {seer:1, medium:0, bodyguard:1, freemason:0, werecat:0, werewolf:1, posessed:0, werefox:1, minifox:0}, //  7 villager
+  {seer:1, medium:0, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:0, werefox:0, minifox:0}, //  8 villager
+  {seer:1, medium:1, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:0, werefox:0, minifox:0}, //  9 villager
+  {seer:1, medium:1, bodyguard:0, freemason:0, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 10 villager 
+  {seer:1, medium:1, bodyguard:1, freemason:0, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 11 villager
+  {seer:1, medium:0, bodyguard:1, freemason:1, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 12 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:0, minifox:0}, // 13 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 14 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:2, posessed:1, werefox:1, minifox:0}, // 15 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 16 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 17 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 18 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 19 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 20 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 21 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:3, posessed:1, werefox:1, minifox:0}, // 22 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:4, posessed:1, werefox:1, minifox:0}, // 23 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:4, posessed:1, werefox:1, minifox:0}, // 24 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:4, posessed:1, werefox:2, minifox:0}, // 25 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:4, posessed:1, werefox:2, minifox:0}, // 26 villager
+  {seer:1, medium:1, bodyguard:1, freemason:2, werecat:0, werewolf:4, posessed:1, werefox:2, minifox:0}, // 27 villager
+  {seer:1, medium:1, bodyguard:1, freemason:3, werecat:0, werewolf:4, posessed:2, werefox:2, minifox:0}, // 28 villager
+  {seer:1, medium:1, bodyguard:1, freemason:3, werecat:0, werewolf:4, posessed:2, werefox:2, minifox:0}, // 29 villager
+  {seer:2, medium:1, bodyguard:1, freemason:3, werecat:0, werewolf:5, posessed:2, werefox:2, minifox:0}, // 30 villager
 ];
 
 function updateInput(arg) {
@@ -45,16 +50,16 @@ function updateInput(arg) {
 
   // 村全体の情報
   ret.player_count     = Object.keys(arg.log[base_date].players).length;
-  if ( ret.player_count >= 8 && ret.player_count != Number(document.getElementById('all_villager_old').value) ) {
-    ret.seer_count       = cast_list[ret.player_count - 8].seer;
-    ret.medium_count     = cast_list[ret.player_count - 8].medium;
-    ret.bodyguard_count  = cast_list[ret.player_count - 8].bodyguard;
-    ret.freemason_count  = cast_list[ret.player_count - 8].freemason;
-    ret.werecat_count    = cast_list[ret.player_count - 8].werecat;
-    ret.werewolf_count   = cast_list[ret.player_count - 8].werewolf;
-    ret.posessed_count   = cast_list[ret.player_count - 8].posessed;
-    ret.werefox_count    = cast_list[ret.player_count - 8].werefox;
-    ret.minifox_count    = cast_list[ret.player_count - 8].minifox;  
+  if ( ret.player_count >= cast_list_start && ret.player_count != Number(document.getElementById('all_villager_old').value) ) {
+    ret.seer_count       = cast_list[ret.player_count - cast_list_start].seer;
+    ret.medium_count     = cast_list[ret.player_count - cast_list_start].medium;
+    ret.bodyguard_count  = cast_list[ret.player_count - cast_list_start].bodyguard;
+    ret.freemason_count  = cast_list[ret.player_count - cast_list_start].freemason;
+    ret.werecat_count    = cast_list[ret.player_count - cast_list_start].werecat;
+    ret.werewolf_count   = cast_list[ret.player_count - cast_list_start].werewolf;
+    ret.posessed_count   = cast_list[ret.player_count - cast_list_start].posessed;
+    ret.werefox_count    = cast_list[ret.player_count - cast_list_start].werefox;
+    ret.minifox_count    = cast_list[ret.player_count - cast_list_start].minifox;  
   } else {
     ret.seer_count       = Number(document.getElementById('seer').value);
     ret.medium_count     = Number(document.getElementById('medium').value);
@@ -357,7 +362,7 @@ function updateInputField(arg) {
                 result.style.visibility = 'collapse';
                 result.value = '';
               }
-            } else { // if (job == "村人" || job == "狩人" || job == "共有" || job == "猫又")
+            } else { // if (job == "村人" || job == "狩人" || job == "共有" || job == "埋毒")
               // deducer: target (alive player list)
               target_label.innerText = '';
               target.setAttribute('disabled', 'disabled');

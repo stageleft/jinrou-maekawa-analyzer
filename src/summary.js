@@ -123,7 +123,7 @@ function updateSummary(arg) {
     enemy_over_count = enemy_over_count + 1;
   }
   for (var i = arg.input.werecat_count;   i < Object.keys(list.werecat_co).length;   i++) {
-    list.enemy_mark[String("偽猫又" + String(i))]   = { comingout:"村人", enemymark:"人外" };
+    list.enemy_mark[String("偽埋毒" + String(i))]   = { comingout:"村人", enemymark:"人外" };
     enemy_over_count = enemy_over_count + 1;
   }
   for (var i = arg.input.bodyguard_count; i < Object.keys(list.bodyguard_co).length; i++) {
@@ -357,7 +357,7 @@ function updateSummary(arg) {
   calcSubSummary(ret, "【占い師 (x/y)】", "seer",      arg.input.seer_count,      Object.entries(list.seer_co),      false);
   calcSubSummary(ret, "【霊能者 (x/y)】", "medium",    arg.input.medium_count,    Object.entries(list.medium_co),    false);
   calcSubSummary(ret, "【共有者 (x/y)】", "freemason", arg.input.freemason_count, Object.entries(list.freemason_co), true);
-  calcSubSummary(ret, "【猫　又 (x/y)】", "werecat",   arg.input.werecat_count,   Object.entries(list.werecat_co),   true);
+  calcSubSummary(ret, "【埋毒者 (x/y)】", "werecat",   arg.input.werecat_count,   Object.entries(list.werecat_co),   true);
   calcSubSummary(ret, "【狩　人 (x/y)】", "bodyguard", arg.input.bodyguard_count, Object.entries(list.bodyguard_co), true);
   // 村状況まとめ
   calcSubSummary(ret, "【生存者 (x)】", "", Object.entries(list.villager_live).length,  Object.entries(list.villager_live),  true);
@@ -369,7 +369,7 @@ function updateSummary(arg) {
   calcSubSummary(ret, "【人　狼 (x/y)】", "werewolf", arg.input.werewolf_count, Object.entries(list.werewolf_mark), false);
   calcSubSummary(ret, "【狂　人 (x/y)】", "posessed", arg.input.posessed_count, Object.entries(list.posessed_mark), false);
   calcSubSummary(ret, "【妖　狐 (x/y)】", "werefox",  arg.input.werefox_count,  Object.entries(list.werefox_mark),  false);
-  calcSubSummary(ret, "【子　狐 (x/y)】", "minifox",  arg.input.minifox_count,  Object.entries(list.minifox_mark),  false);
+  calcSubSummary(ret, "【Ｑ　Ｐ (x/y)】", "minifox",  arg.input.minifox_count,  Object.entries(list.minifox_mark),  false);
   calcSubSummary(ret, "【人　外 (x/y)】", "enemy",    enemy_other_count,        Object.entries(list.enemy_mark),    false);
   // 死亡＆復活情報まとめ
   calcSubSummary(ret, "【吊り (x)】", "", voted_count,   voted,   true);
