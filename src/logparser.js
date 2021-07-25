@@ -29,7 +29,7 @@ function html2json_village_log(arg) {
 //          
   var ret = {village_number:null, log:{}};
   // parse village number
-  var village_number_section = arg.body.querySelector("span.room").childNodes[1].textContent;
+  var village_number_section = arg.body.querySelector(".room").childNodes[1].textContent;
   ret.village_number = village_number_section.replace(/^.*\[/i, '').replace(/番地\].*$/i, '');
 
   // parse player list
@@ -96,18 +96,10 @@ function html2json_village_log(arg) {
 
   // TODO : parse vote log
   //vote_log:     []
-  //ret[datestring].vote_log = html2json_vote_result;
-  /*
-  var vote_title = base_td_list.item(0).querySelector("font");
-  var vote_table = base_td_list.item(0).querySelector("table");
-  if (vote_table != null) {            // vote table
-    var r = {title: vote_title.innerText};
-    Object.assign(r, html2json_vote_result(vote_table));
-    current_day_log.vote_log.push(r);
-  } else {                             // inner tag in vote table
-    // nop:
-  }
-  */
+  var vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
+  Object.keys(vote_result).forEach(d => {
+    ret.log[d].vote_log = vote_result[d].vote_log;
+  });
 
   // modify player list
   function calc_dead_or_alive(prev_log, curr_log, character_name) {
@@ -299,25 +291,48 @@ function html2json_vote_result(arg) {
 //          <tbody> ... </tbody> of <table></table>
 // 
 // output : null or Hash
-//            vote: [
-//              { from_villager:value, to_villager:value },
+//          "date-string":{
+//            vote_log: [
+//              {
+//                title: "title_string"
+//                vote: [
+//                  { from_villager:value, to_villager:value },
+//                  ...
+//                ]
+//              },
+//              {
+//                title: "title_string"
+//                vote: [
+//                  { from_villager:value, to_villager:value },
+//                  ...
+//                ]
+//              },
 //              ...
-//            ],
-  var ret = [];
+//            ]
+//          },
+//          "date-string":{},
+//          ...
+  var ret = {};
+  arg.forEach(tb => {
+    // <tr><td class="vote-times" colspan="4">3 日目 (1 回目)</td></tr>
+    var title_string = tb.getElementsByClassName("vote-times")[0].innerText;
+    var datestring   = title_string.match(/^[0-9]+/g) + "日目の朝となりました。";
 
-  // console.log(arg.innerHTML); // debug
+    if ( ret[datestring] == null) {
+      ret[datestring] = { vote_log: []};
+    }
 
-  var base_tr_list = arg.querySelectorAll("tr");
-  for (var i = 0 ; i < base_tr_list.length ; i++) {
-    // style <tr><td><b>from</b>さん</td><td>x 票</td><td>投票先 → <b>to</b>さん</td>
-    var from_person;
-    var to_person
-    var base_b_list = base_tr_list.item(i).querySelectorAll("b");
-    from_person = base_b_list.item(0).innerText;
-    to_person   = base_b_list.item(1).innerText;
+    var vote_result = [];
+    var vote_body = tb.getElementsByClassName("vote-name");
+    for (var i = 0 ; i < vote_body.length ; i = i + 2 ) {
+      // <tr><td class="vote-name">白瀬咲耶</td><td>0 票</td><td>投票先 1 票 →</td><td class="vote-name">ロイ・マスタング</td></tr>
+      var from_person = vote_body[i].innerText;
+      var to_person   = vote_body[i + 1].innerText;
+  
+      vote_result.push({ from_villager: from_person , to_villager : to_person });
+    }  
+    ret[datestring].vote_log.push({ title: title_string , vote : vote_result });
+  });
 
-    ret.push({ from_villager: from_person , to_villager : to_person });
-  }
-
-  return {vote: ret};
+  return ret;
 }
