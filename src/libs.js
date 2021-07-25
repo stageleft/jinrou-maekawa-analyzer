@@ -75,19 +75,24 @@ function logTag_d2n(key_day) {
 // output : String "(n-1)日目の夜となりました。" or input
   var d = parseInt(key_day);
 
-  // day 2..N -> night 1..(N-1)
-  if (d >= 2) {
-    if (key_day == "2日目の朝となりました。") {
-      return ("１日目の夜となりました。");
-    } else if (key_day.match("朝となりました。$")) {
-      return (String(d-1) + "日目の夜となりました。");
-    }
+  if (d >= 2 && key_day.match("朝となりました。$")) {
+    // day 2..N -> night 1..(N-1)
+    return (String(d-1) + "日目の夜となりました。");
+  } else {
+    return key_day;
   }
-
-  // other than day 2..N
-  return key_day;
 }
-
+function logTag_n2d(key_day) {
+  // input  : String "n日目の夜となりました。"(n>=1) or other
+  // output : String "n日目の朝となりました。" or input
+  var d = parseInt(key_day);
+  if (d == 1) {
+    return ("１日目の朝となりました。"); // "1" -> "１"
+  } else {
+    return key_day.replace(/夜/i,'朝');
+  }
+}
+  
 function setColorClass(player_info){
 // input  : JSON Object : arg.input.each_player['target player']
 // output : String : CSS Class name. see sidebar.css

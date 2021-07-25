@@ -4,7 +4,6 @@
 //   html_data = function(json_data)
 //   json_data = function(json_data)
 
-
 function html2json_village_log(arg) {
 // input  : HTMLCollction
 //          <table width="770" cellspacing="5"><tbody> ... </tbody></table>
@@ -15,6 +14,12 @@ function html2json_village_log(arg) {
 //                  "date-string":{
 //                      players:  {...}
 //                      comments: {...}
+//                      list_voted:   [ "character-name", ... ],
+//                      list_cursed:  [ "character-name", ... ],
+//                      list_revived: [ "character-name", ... ],
+//                      list_bitten:  [ "character-name", ... ],
+//                      list_dnoted:  [ "character-name", ... ],
+//                      list_sudden:  [ "character-name", ... ],
 //                      vote_log: {...}
 //                  },
 //                  "date-string":{},
@@ -27,104 +32,135 @@ function html2json_village_log(arg) {
   var village_number_section = arg.body.querySelector("span.room").childNodes[1].textContent;
   ret.village_number = village_number_section.replace(/^.*\[/i, '').replace(/番地\].*$/i, '');
 
+  // parse player list
   // parse talk table list
   var talk_sections = arg.body.querySelectorAll("table.talk");
-  var village_log = html2log(talk_sections);
-  Object.assign(ret.log, village_log);
+  ret.log = html2log(talk_sections);
 
-  // parse player list
+  // parse dead/alive player list
+  //list_voted:   [],
+  //list_cursed:  [], // Cursed  by WereCat (only in voting)
+  //list_revived: [], // Revived by WereCat
+  //list_bitten:  [],
+  //list_dnoted:  [], // dead by Death Note
+  //list_sudden:  [],
+  // -- bitten example
+  //<table class="dead-type">
+  //<tbody><tr><td>博麗霊夢 は無残な姿で発見されました</td></tr>
+  //</tbody></table>
+  //<table class="dead-type">
+  //<tbody><tr><td>松尾芭蕉 は無残な姿で発見されました</td></tr>
+  //</tbody></table>
+  // -- voted example
+  //<tr class="dead-type-vote"><td>ナイスネイチャ は投票の結果処刑されました</td></tr>
+  var [date_array, base_date] = createDateArray(ret);
+  date_array.forEach(d => {
+    // All Death and Revive is Treated in begin of Daytime.
+    ret.log[d].list_voted   = []; // dead in end of daytime, so record to next Daytime.
+    ret.log[d].list_cursed  = []; // dead in end of daytime, so record to next Daytime.
+    ret.log[d].list_revived = [], // revived in begin of this Daytime.
+    ret.log[d].list_bitten  = []; // dead in begin of this Daytime.
+    ret.log[d].list_dnoted  = []; // dead in begin of this Daytime.
+    ret.log[d].list_sudden  = []; // dead in any time, so record to next Daytime.
+    // メモ：背徳と恋人は死因として実装しない。理由のない死亡につき、その場の突然死として扱う。
+  });
+  var list_dead_all = [];
+  arg.body.querySelectorAll("table.dead-type").forEach(tb => {
+    var td_list = tb.querySelectorAll("td");
+    td_list.forEach(td => {
+      list_dead_all.push(td.innerText);
+    });
+  });
+  var date_count = 1;
+  for (var dead_count = list_dead_all.length - 1; dead_count >= 0; dead_count--) {
+    // メモ：デスノ・猫呪いは死因として実装しない（ログが見当たらないため）。理由のない死亡につき、その場の突然死として扱う。
+    // メモ：猫蘇生は実装しない（ログが見当たらないため）。
+    // メモ：呪殺・猫噛みは無残とする。
+    var [dead_person, dead_reason] = list_dead_all[dead_count].split(' ');
+    if (list_dead_all[dead_count].match(/^\(.*\)$/g)) {
+      // skip if dead_reason is like "(xx はyyになったようです)" style
+    } else if (dead_reason == undefined) {
+      // skip if "人狼は護衛に阻まれたようです"
+    } else if (dead_reason.match("無残な姿で発見されました")) {
+      ret.log[date_array[date_count]].list_bitten.push(dead_person);
+    } else if (dead_reason.match("投票の結果処刑されました")) {
+      date_count = date_count + 1;
+      if (date_count >= date_array.length) {
+        break;
+      }
+      ret.log[date_array[date_count]].list_voted.push(dead_person);
+    } else {
+      ret.log[date_array[date_count]].list_sudden.push(dead_person);      
+    }
+  }
+
+  // TODO : parse vote log
+  //vote_log:     []
+  //ret[datestring].vote_log = html2json_vote_result;
+  /*
+  var vote_title = base_td_list.item(0).querySelector("font");
+  var vote_table = base_td_list.item(0).querySelector("table");
+  if (vote_table != null) {            // vote table
+    var r = {title: vote_title.innerText};
+    Object.assign(r, html2json_vote_result(vote_table));
+    current_day_log.vote_log.push(r);
+  } else {                             // inner tag in vote table
+    // nop:
+  }
+  */
+
+  // modify player list
+  function calc_dead_or_alive(prev_log, curr_log, character_name) {
+    var ret_stat;
+    if (prev_log.players[character_name].stat == "（生存中）") {
+      if ((curr_log.list_bitten.includes(character_name) == true) ||
+          (curr_log.list_voted.includes(character_name)  == true) || 
+          (curr_log.list_sudden.includes(character_name) == true) || 
+          (curr_log.list_dnoted.includes(character_name) == true) || 
+          (curr_log.list_cursed.includes(character_name) == true)) {
+        ret_stat = "（死亡）";
+      } else {
+        ret_stat = "（生存中）";
+      }
+    } else {
+      if (curr_log.list_revived.includes(character_name) == true) {
+        ret_stat = "（生存中）";
+      } else {
+        ret_stat = "（死亡）";
+      }
+    }
+    return ret_stat;
+  }
   var player_section = arg.body.querySelector("div.player").querySelector("tbody");
   var player_list = html2json_villager_list(player_section).players;
-  Object.keys(ret.log).forEach(log_by_day => {
-    ret.log[log_by_day].players = {};
-    if (talk_sections.length < 2) {
-      // if multi days log
-      // TODO: fix players["each_player"].stat in each day
-      var datearray;
-      var base_date;
-      [datearray, base_date] = createDateArray(ret);
-      if ((datearray == null) || (datearray.length == 0)){
-        return;
-      }
-      Object.keys(player_list).forEach(k => {
-        player_list[k].stat = "（生存中）";
-      });
-      /*
-      datearray.forEach(function(d){
-        if (d == "１日目の朝となりました。") {
-          ret.log[d].players = {};
-          Object.assign(ret.log[d].players, player_list);
-          return;
-        } else if ((d != logTag_d2n(d)) && (ret.log[logTag_d2n(d)] != null)) {
-          var p = datearray[datearray.indexOf(d) - 1];
-          // set player_list into current log
-          // (n-1)th Nighttime: calc player_list of 1 day ago from ret.log[l].list_*
-          var n = logTag_d2n(d);
-          ret.log[n].players = {};
-          Object.keys(player_list).forEach(function(k){
-            ret.log[n].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
-            if (ret.log[p].players[k].stat == "（生存中）") {
-              ret.log[n].players[k].stat = "（生存中）";
-              if ((ret.log[n].list_bitten.includes(k) == true) ||
-                  (ret.log[n].list_voted.includes(k) == true) || 
-                  (ret.log[n].list_sudden.includes(k) == true) || 
-                  (ret.log[n].list_dnoted.includes(k) == true) || 
-                  (ret.log[n].list_cursed.includes(k) == true)) {
-                ret.log[n].players[k].stat = "（死　亡）";
-              }
-            } else {
-              ret.log[n].players[k].stat = "（死　亡）";
-              if ((ret.log[n].list_revived.includes(k) == true)) {
-                ret.log[n].players[k].stat = "（生存中）";
-              }
-            }
-          });
-          // nth Daytime: calc player_list of 1 day ago from ret.log[l].list_*
-          ret.log[d].players = {};
-          Object.keys(player_list).forEach(function(k){
-            ret.log[d].players[k] = {icon:ret.log[n].players[k].icon, stat:""};
-            if (ret.log[n].players[k].stat == "（生存中）") {
-              ret.log[d].players[k].stat = "（生存中）";
-              if ((ret.log[d].list_bitten.includes(k) == true) ||
-                  (ret.log[d].list_voted.includes(k) == true) || 
-                  (ret.log[d].list_sudden.includes(k) == true) || 
-                  (ret.log[d].list_dnoted.includes(k) == true) || 
-                  (ret.log[d].list_cursed.includes(k) == true)) {
-                ret.log[d].players[k].stat = "（死　亡）";
-              }
-            } else {
-              ret.log[d].players[k].stat = "（死　亡）";
-              if ((ret.log[d].list_revived.includes(k) == true)) {
-                ret.log[d].players[k].stat = "（生存中）";
-              }
-            }
-          });
-        } else {
-          var p = datearray[datearray.indexOf(d) - 1];
-          ret.log[d].players = {};
-          Object.keys(player_list).forEach(function(k){
-            ret.log[d].players[k] = {icon:ret.log[p].players[k].icon, stat:""};
-            if (ret.log[p].players[k].stat == "（生存中）") {
-              ret.log[d].players[k].stat = "（生存中）";
-              if ((ret.log[d].list_bitten.includes(k) == true) ||
-                  (ret.log[d].list_voted.includes(k) == true) || 
-                  (ret.log[d].list_sudden.includes(k) == true) || 
-                  (ret.log[d].list_dnoted.includes(k) == true) || 
-                  (ret.log[d].list_cursed.includes(k) == true)) {
-                ret.log[d].players[k].stat = "（死　亡）";
-              }
-            } else {
-              ret.log[d].players[k].stat = "（死　亡）";
-              if ((ret.log[d].list_revived.includes(k) == true)) {
-                ret.log[d].players[k].stat = "（生存中）";
-              }
-            }
-          });
-        }
-      });
-      */
+  Object.keys(ret.log).sort((a,b) => a.localeCompare(b, 'jp')).forEach(log_by_day => {
+    if (log_by_day.localeCompare(date_array[date_array.length - 1], 'jp') > 0) { // log-date limitation
+      return;
     }
-    Object.assign(ret.log[log_by_day].players, player_list);
+    ret.log[log_by_day].players = JSON.parse(JSON.stringify(player_list));
+    if (talk_sections.length >= 2) {
+      // if multi days log
+      if (log_by_day == "１日目の朝となりました。") {
+        Object.keys(ret.log[log_by_day].players).forEach(k => {
+          ret.log[log_by_day].players[k].stat = "（生存中）";
+        });
+      } else if ((log_by_day != logTag_d2n(log_by_day))
+              && (logTag_d2n(log_by_day) != logTag_n2d(logTag_d2n(log_by_day)))
+              && (ret.log[logTag_d2n(log_by_day)] != null)
+              && (ret.log[logTag_d2n(log_by_day)].players != null)) {
+        // if Daytime (and has Previous Daytime)
+        // all Death is treated in begin of Daytime, so dead difference is Previous Daytime.
+        var log_prev_day = logTag_n2d(logTag_d2n(log_by_day));
+        Object.keys(ret.log[log_by_day].players).forEach(k => {
+          ret.log[log_by_day].players[k].stat = calc_dead_or_alive(ret.log[log_prev_day], ret.log[log_by_day], k);
+        });
+      } else {
+        // if Nighttime (and has Previous Daytime)
+        // all Death is treated in begin of Daytime, so No Death occured.
+        var log_prev_daytime = logTag_n2d(log_by_day);
+        ret.log[log_by_day].players = JSON.parse(JSON.stringify(ret.log[log_prev_daytime].players));
+      }
+    }
   });
 
   return ret;
@@ -183,118 +219,19 @@ function html2log(arg) {
 //              beforegame
 // output : Hash
 //          "date-string":{
-//            msg_date:     "date-string",
-//            list_voted:   [ "character-name", ... ],
-//            list_cursed:  [ "character-name", ... ],
-//            list_revived: [ "character-name", ... ],
-//            list_bitten:  [ "character-name", ... ],
-//            list_dnoted:  [ "character-name", ... ],
-//            list_sudden:  [ "character-name", ... ],
 //            comments: [
 //              { speaker:value, type:value, comment:[value_with_each_line] },
 //              ...
 //            ],
-//            vote_log : [<from html2json_vote_result()>]
 //          },
 //          "date-string":{},
 //          ...
 //   type:value : "Normal" or "Strong" or "WithColor"
-  function init_ret(){
-    var o = { msg_date:     null,
-              list_voted:   [],
-              list_cursed:  [], // Cursed  by WereCat (only in voting)
-              list_revived: [], // Revived by WereCat
-              list_bitten:  [],
-              list_dnoted:  [], // dead by Death Note
-              list_sudden:  [],
-              comments:     [],
-              vote_log:     []
-            };
-    return o;
-  };
   var ret = {};
-
-  /*
-  var base_tr_list = arg.querySelectorAll("tr");
-  for (var i = 0 ; i < base_tr_list.length ; i++) {
-    var base_td_list = base_tr_list.item(i).querySelectorAll("td");
-    if (base_td_list.length == 1) {        // system message <td colspan="2">...</td>
-      var icon_selector = base_td_list.item(0).querySelector("img");
-      if (icon_selector != null) {
-        if (base_td_list.item(0).querySelector("font") == null) { continue; }
-
-        var icon_uri   = icon_selector.getAttribute("src").replace(re, "http://jinrou.aa0.netvolante.jp/~jinrou/");
-        var msg_text   = base_td_list.item(0).querySelector("font").innerText;
-        if ((icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/ampm.gif") ||
-            (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/hum.gif") ||
-            (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/wlf.gif") ||
-            (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/fox.gif") ||
-            (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/sc5.gif")) {
-          // <img src="./img/ampm.gif" width="32" height="32" border="0"> <font size="+1">１日目の夜となりました。</font>(19/07/15 00:39:10)
-          // <img src="./img/ampm.gif" width="32" height="32" border="0"> <font size="+1">3日目の夜となりました。</font>(19/07/14 23:32:09)
-          // <img src="./img/ampm.gif" width="32" height="32" border="0"> <font size="+1">9日目の朝となりました。</font>(19/07/06 01:43:35)
-          // <img src="./img/ampm.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「引き分け」です！</font>(19/08/13 00:22:35)
-          // <img src="./img/hum.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「村　人」の勝利です！</font>(19/08/12 02:05:13)
-          // <img src="./img/wlf.gif" width="32" height="32" border="0"> <font size="+2" color="#dd0000">「<font color="#ff0000">人　狼</font>」の勝利です！</font>(19/08/04 02:57:29)
-          // <img src="./img/fox.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「<font color="#ffcc33">妖　狐</font>」の勝利です！</font>(19/08/12 00:30:03)
-          // <img src="./img/sc5.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「<font color="#ff9999">猫　又</font>」の勝利です！</font>(19/07/15 00:11:04)
-          datearray.push(msg_text);
-          current_day_log.msg_date = datearray[datearray.length - 1];
-          ret[datearray[datearray.length - 1]] = current_day_log;
-          current_day_log = init_ret();
-        } else if (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/dead1.gif") {
-          if (msg_text.match("^処刑されました・・・。$")) {
-            // <img src="./img/dead1.gif" width="32" height="32" border="0"> <b>安斎都</b>さんは村民協議の結果<font color="#ff0000">処刑されました・・・。</font>
-            current_day_log.list_voted.push(base_td_list.item(0).querySelector("b").innerText);
-          } else {
-            // <img src="./img/dead1.gif" width="32" height="32" border="0"> <b>タマトイズ</b>さんは猫又の呪いで<font color="#ff0000">死亡しました・・・。</font>
-            current_day_log.list_cursed.push(base_td_list.item(0).querySelector("b").innerText);
-          }
-        } else if (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/dead2.gif") {
-          if (msg_text.match("^無残な姿で発見された・・・。$")) {
-            // <img src="./img/dead2.gif" width="32" height="32" border="0"> <b>伊吹翼</b>さんは翌日<font color="#ff0000">無残な姿で発見された・・・。</font>
-            current_day_log.list_bitten.push(base_td_list.item(0).querySelector("b").innerText);
-          } else if (msg_text.match("^に死体で発見された・・・。$")) {
-            // <img src="./img/dead2.gif" width="32" height="32" border="0"> <b>久川凪</b>さんは翌日<font color="#ff0000">に死体で発見された・・・。</font>
-            current_day_log.list_dnoted.push(base_td_list.item(0).querySelector("b").innerText);
-          } else {
-            // <img src="./img/dead2.gif" width="32" height="32" border="0"> <b>八神マキノ</b>さんは都合により<font color="#ff0000">突然死しました・・・。【ペナルティ】</font>
-            // <img src="./img/dead2.gif" width="32" height="32" border="0"> <b>海星</b>さんは都合により<font color="#ff0000">突然死しました・・・。</font>
-            current_day_log.list_sudden.push(base_td_list.item(0).querySelector("b").innerText);
-          }
-        } else if (icon_uri == "http://jinrou.aa0.netvolante.jp/~jinrou/img/msg.gif") {
-          if (msg_text.match("^奇跡的に生き返った。$")) {
-            // <img src="./img/msg.gif" width="32" height="32" border="0"> <b>パチュリー</b>さんは<font color="#ff0000">奇跡的に生き返った。</font>
-            current_day_log.list_revived.push(base_td_list.item(0).querySelector("b").innerText);
-          } else {
-            // <img src="./img/msg.gif" width="32" height="32" border="0">
-            //      <font size="+1">再投票となりました。</font>あと
-            //      <font size="+2">1</font>回の投票で結論が出なければ引き分けとなります。</td>
-            // ignore. it maybe unused message or inner font tag of winner message.
-          }
-        } else {
-          // ignore messages with unknown icon. it is not important.
-        }
-      } else {
-        // ignore messages without icon. it is not important.
-      }
-    } else {                               // vote
-      var vote_title = base_td_list.item(0).querySelector("font");
-      var vote_table = base_td_list.item(0).querySelector("table");
-      if (vote_table != null) {            // vote table
-        var r = {title: vote_title.innerText};
-        Object.assign(r, html2json_vote_result(vote_table));
-        current_day_log.vote_log.push(r);
-      } else {                             // inner tag in vote table
-        // nop:
-      }
-    }
-  }
-  */
 
   // set each date log to return value
   arg.forEach(element => {
-    // (1) msg_date
+    // (1) datestring
     var date_id = element.getAttribute("id");
     var datestring = null;
     if (date_id == "beforegame") {
@@ -308,8 +245,7 @@ function html2log(arg) {
       var day_no = date_id.replace(/^date/i,'');
       datestring = day_no + "日目の夜となりました。";
     }
-    ret[datestring] = init_ret();
-    ret[datestring].msg_date = datestring;
+    ret[datestring] = {comments:[]};
 
     // (2) comments
     var tr_list = element.querySelectorAll("tr");
@@ -321,13 +257,16 @@ function html2log(arg) {
         var v_comment = null;
         var v_comtype = null;
         td_list.forEach(td => {
-          if (td.getAttribute("class") == "user-name") {
-            if (td.childNodes.length == 2) { // case if 
+          if (td.getAttribute("class").match("user-name")) {
+            if (td.childNodes.length >= 2) {
               // <td class="user-name"><font color="#CC0033">◆</font>ナイスネイチャ</td>
+              // <td class="user-name night-self-talk"><font color="#3300FF">◆</font>わかさぎ姫<span>の独り言</span></td>
+              // <td class="user-name night-wolf"><font color="#00CC99">◆</font>セイウンスカイ<span>(人狼)</span></td>
               villager = td.childNodes[1].textContent;
+            } else {
+              // <td class="user-name">狼の遠吠え</td>
+              villager = "";
             }
-            // else nop.
-            // <td class="user-name">狼の遠吠え</td>
           } else {
             v_comment = String(td.innerHTML).replace(/<br>/g,"\n").replace(/^「/,"").replace(/」$/,"").split('\n');
             if (td.getAttribute("class") == "say normal") {
@@ -350,15 +289,6 @@ function html2log(arg) {
       }
     });
 
-    // (3) vote_log:     []
-    //ret[datestring].vote_log = html2json_vote_result;
-
-    //list_voted:   [],
-    //list_cursed:  [], // Cursed  by WereCat (only in voting)
-    //list_revived: [], // Revived by WereCat
-    //list_bitten:  [],
-    //list_dnoted:  [], // dead by Death Note
-    //list_sudden:  [],
   });
 
   return ret;
