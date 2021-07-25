@@ -330,9 +330,12 @@ function html2json_vote_result(arg) {
       var to_person   = vote_body[i + 1].innerText;
   
       vote_result.push({ from_villager: from_person , to_villager : to_person });
-    }  
+    }
     ret[datestring].vote_log.push({ title: title_string , vote : vote_result });
   });
 
+  Object.keys(ret).forEach(v => {
+    ret[v].vote_log.reverse();
+  });
   return ret;
 }

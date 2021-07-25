@@ -121,7 +121,7 @@ function updateVotes(arg) {
       return tr;
     }
     arg.log[datestr].vote_log.forEach(function(l, j){
-      var vote_title = arg.log[datestr].vote_log[j].title + '（' + String(j + 1) + '回目）';
+      var vote_title = arg.log[datestr].vote_log[j].title;
       if (voted_title_list.includes(vote_title) == true) {
         return; // contiune arg.log[datestr].vote_log.forEach()
       }
