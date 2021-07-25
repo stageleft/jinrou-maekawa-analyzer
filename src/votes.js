@@ -36,8 +36,6 @@ function updateVotes(arg) {
     if (body.querySelector('tr') == null) {
 
       Object.keys(arg.log[base_date].players).forEach(function(f){
-        if (f == "初日犠牲者") return;
-
         var tr = document.createElement('tr');
         tr.setAttribute('id', 'vote-from-' + f);
 

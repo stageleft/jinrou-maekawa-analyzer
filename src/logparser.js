@@ -23,81 +23,28 @@ function html2json_village_log(arg) {
 //          }
 //          
   var ret = {village_number:null, log:{}};
-  var player_list;
+  // parse village number
+  var village_number_section = arg.body.querySelector("span.room").childNodes[1].textContent;
+  ret.village_number = village_number_section.replace(/^.*\[/i, '').replace(/番地\].*$/i, '');
 
-  var base_table   = arg.querySelector("table").querySelector("tbody");
-  var base_tr_list = base_table.querySelectorAll("tr");
-  if ((base_tr_list.item(0).innerText != "ブラウザの更新ボタンは押さないでください") &&
-      (base_tr_list.item(0).innerText != "過去の記録")) {
-    return null;
-  }
-  for (var i = 1 ; i < base_tr_list.length ; i++) {
-    if ((base_tr_list.item(i).innerText == "ブラウザの更新ボタンは押さないでください") ||
-        (base_tr_list.item(i).innerText == "過去の記録")) {
-      // nop : caution to player
-    } else if (base_tr_list.item(i).innerText.match("^◆ 村人たち")) {
-      // nop : tag
-    } else if (base_tr_list.item(i-1).innerText.match("^◆ 村人たち")) {
-      // parse sub <table> as villager_list
-      player_list = html2json_villager_list(base_tr_list.item(i).querySelector("table")).players;
-    } else if (base_tr_list.item(i).innerText.match("^◆ 再表示")) {
-      // nop : tag
-    } else if (base_tr_list.item(i-1).innerText.match("^◆ 再表示")) {
-      // nop : control
-    } else if (base_tr_list.item(i).innerText.match("^◆ 出来事")) {
-      // nop : tag
-    } else if (base_tr_list.item(i-1).innerText.match("^◆ 出来事")) {
-      // style of this section :
-      //  <td>
-      //    <img>
-      //    <font size="+2">～ village title ～</font>
-      //    village_id番地
-      //    <br>
-      //    <img>
-      //    <font size="+2">date</font>
-      //    system information
-      //    <br>
-      //    <table>
-      //  </td>
-      // ignore another than <table>.
-      //    village_id is from input tag.
-      //    date is from messages.
-      // parse sub <table> as village_log
-      var village_log = html2log(base_tr_list.item(i).querySelector("table"));
-      Object.assign(ret.log, village_log);
-      // console.log(JSON.stringify(village_log));
-    } else if (base_tr_list.item(i).innerText.match("^◆ 幽霊の間")) {
-      // nop : tag
-    } else if (base_tr_list.item(i-1).innerText.match("^◆ 幽霊の間")) {
-      // nop : tag
-    } else if (base_tr_list.item(i).innerText.match("^戻る")) {
-      // nop : information to player
-    } else {
-      // nop : maybe <tr> tag in sub <table>.
+  // parse talk table list
+  var talk_sections = arg.body.querySelectorAll("table.talk");
+  var village_log = html2log(talk_sections);
+  Object.assign(ret.log, village_log);
+
+  // parse player list
+  var player_section = arg.body.querySelector("div.player").querySelector("tbody");
+  var player_list = html2json_villager_list(player_section).players;
+  Object.keys(ret.log).forEach(log_by_day => {
+    ret.log[log_by_day].players = {};
+    if (talk_sections.length < 2) {
+      // if multi days log
+      // TODO: fix player_list in each day
     }
-  }
-
-  var base_input_list = base_table.querySelectorAll("input");
-  for (var i = 0 ; i < base_input_list.length ; i++) {
-    if (base_input_list.item(i).name == "VILLAGENO") {
-      // get village number from below tag.
-      //   <input type="hidden" name="VILLAGENO" value="153063">
-      ret.village_number = base_input_list.item(i).value;
-    } else {
-      // nop : information to system.
-      //    <input type="hidden" name="TXTPNO" value="60">
-      //    <input type="hidden" name="TXTPASS" value="">
-      //    <input type="hidden" name="TXTLOGIN" value="2">
-      //    <input type="hidden" name="FORMID" value="441975">
-    }
-  }
-
-  if (Object.keys(ret.log).length < 2) {
-    // single day log
-    ret.log[Object.keys(ret.log)[0]].players = {};
-    Object.assign(ret.log[Object.keys(ret.log)[0]].players, player_list);
-  } else {
+    Object.assign(ret.log[log_by_day].players, player_list);
+  });
     // multi days log
+    /*
     var datearray;
     var base_date;
     [datearray, base_date] = createDateArray(ret);
@@ -179,7 +126,7 @@ function html2json_village_log(arg) {
         });
       }
     });
-  }
+    */
   return ret;
 };
 
@@ -192,11 +139,9 @@ function html2json_villager_list(arg) {
 //              "character-name": { icon:value, stat:value },
 //              ...
 //            }
-//           stat:value : "（生存中）" or "（死　亡）"
+//           stat:value : "（生存中）" or "（死亡）"
   var ret = {};
   var re = new RegExp('^\.\/', '');
-
-//  console.log(arg.innerHTML); // debug
 
   var base_td_list = arg.querySelectorAll("td");
   for (var i = 0 ; i < base_td_list.length ; i = i + 2) {
@@ -205,7 +150,7 @@ function html2json_villager_list(arg) {
     var img_src;
     // style of base_td_list.item(i+1):
     //   character name<br>
-    //   <b>player name (with TRIP)</b><br> (option)
+    //   (player name (◆<br>with TRIP))<br> (option)
     //   [character JOB]<br>                (option)
     //   （Alive Status）
     // ignore player name, JOB.
@@ -215,7 +160,7 @@ function html2json_villager_list(arg) {
     // get info of base_td_list.item(i)
     var img_selector = base_td_list.item(i).querySelector("img");
     if (img_selector != null) {
-      img_src        = img_selector.getAttribute("src").replace(re, "http://jinrou.aa0.netvolante.jp/~jinrou/");
+      img_src        = img_selector.getAttribute("src").replace(re, "http://alicegame.xsrv.jp/takane/");
 
       // get info of base_td_list.item(i+1)
       var character_info = String(base_td_list.item(i+1).innerHTML).split('<br>');
@@ -231,8 +176,13 @@ function html2json_villager_list(arg) {
 }
 
 function html2log(arg) {
-// input  : HTMLCollction
-//          <tbody> ... </tbody> of <table table cellpadding="0"></table>
+// input  : Array of NodeList
+//          each Nodelist is <table id="---"></table>
+//          id is below:
+//              aftergame
+//              dateX_day  : Daytime of day X (X=2,3,...)
+//              dateX      : Nighttime of day X (X=1,2,3,...)
+//              beforegame
 // output : Hash
 //          "date-string":{
 //            msg_date:     "date-string",
@@ -251,8 +201,6 @@ function html2log(arg) {
 //          "date-string":{},
 //          ...
 //   type:value : "Normal" or "Strong" or "WithColor"
-  var re = new RegExp('^\.\/', '');
-
   function init_ret(){
     var o = { msg_date:     null,
               list_voted:   [],
@@ -266,11 +214,9 @@ function html2log(arg) {
             };
     return o;
   };
-  var msg_date = null;
-  var datearray = [];
   var ret = {};
-  var current_day_log = init_ret();
 
+  /*
   var base_tr_list = arg.querySelectorAll("tr");
   for (var i = 0 ; i < base_tr_list.length ; i++) {
     var base_td_list = base_tr_list.item(i).querySelectorAll("td");
@@ -334,28 +280,6 @@ function html2log(arg) {
       } else {
         // ignore messages without icon. it is not important.
       }
-    } else if (base_td_list.length == 2) { // villager comment
-      try {
-        var villager  = base_td_list.item(0).querySelector("b").innerText;
-        if (villager == "ゲームマスター") {
-            villager = "初日犠牲者";
-        }
-        // ref. https://qiita.com/miiitaka/items/793555b4ccb0259a4cb8
-        var v_comment = String(base_td_list.item(1).innerHTML).replace(/<br>/g,"\n").replace(/^「/,"").replace(/」$/,"").replace(/<("[^"]*"|'[^']*'|[^'">])*>/g,'').split('\n');
-        var v_comtype = "Normal";
-        if (base_td_list.item(1).querySelector("font") != null) {
-          if (base_td_list.item(1).querySelector("font").size == "+1") {
-            v_comtype = "Strong";
-          } else if (base_td_list.item(1).querySelector("font").size == "-1") {
-            v_comtype = "WithColor";
-          } else {
-            v_comtype = "Unknown";
-          }
-        }
-        current_day_log.comments.push({ speaker: villager , comment : v_comment , type : v_comtype});
-      } catch (e) {
-        // nop : skip "◆狼の遠吠え"
-      }
     } else {                               // vote
       var vote_title = base_td_list.item(0).querySelector("font");
       var vote_table = base_td_list.item(0).querySelector("table");
@@ -368,58 +292,73 @@ function html2log(arg) {
       }
     }
   }
+  */
 
-  if (datearray.length == 1){
-    // daytime log
-    Object.keys(current_day_log).forEach(function(k){
-      ret[datearray[0]][k] = ret[datearray[0]][k].concat(current_day_log[k]);
-    });
-    ret[datearray[0]].vote_log = ret[datearray[0]].vote_log.reverse();
-  } else if ((datearray.length == 2) && (current_day_log.vote_log.length == 0)) {
-    // nighttime log
-    Object.keys(current_day_log).forEach(function(k){
-      ret[datearray[0]][k] = ret[datearray[0]][k].concat(ret[datearray[1]][k]).concat(current_day_log[k]);
-    });
-    delete ret[datearray[1]];
-    ret[datearray[0]].vote_log = ret[datearray[0]].vote_log.reverse();
-  } else {
-    if (current_day_log.comments.length > 0) {
-      datearray.push("１日目の朝となりました。");
-      current_day_log.msg_date = "１日目の朝となりました。";
-      ret["１日目の朝となりました。"] = current_day_log;  
+  // set each date log to return value
+  arg.forEach(element => {
+    // (1) msg_date
+    var date_id = element.getAttribute("id");
+    var datestring = null;
+    if (date_id == "beforegame") {
+      datestring = "１日目の朝となりました。";
+    } else if (date_id == "aftergame") {
+      return; // means continue of forEach()
+    } else if (date_id.match(/_day$/i)) {
+      var day_no = date_id.replace(/^date/i,'').replace(/_day$/i,'');
+      datestring = day_no + "日目の朝となりました。";
+    } else {
+      var day_no = date_id.replace(/^date/i,'');
+      datestring = day_no + "日目の夜となりました。";
     }
-    Object.keys(ret).forEach(function(d){
-      try {
-        ret[d].vote_log = ret[d].vote_log.reverse();
-      } catch(e) {
-        // nop : d is other than msg_date;
-      };
+    ret[datestring] = init_ret();
+    ret[datestring].msg_date = datestring;
+
+    // (2) comments
+    var tr_list = element.querySelectorAll("tr");
+    tr_list.forEach(tr => {
+      var td_list = tr.querySelectorAll("td");
+      var msgtype = tr.getAttribute("class"); // class is in ["","system-message","user-talk"]
+      if (msgtype == "user-talk") {
+        var villager = null;
+        var v_comment = null;
+        var v_comtype = null;
+        td_list.forEach(td => {
+          if (td.getAttribute("class") == "user-name") {
+            // <td class="user-name"><font color="#CC0033">◆</font>ナイスネイチャ</td>
+            villager = td.childNodes[1].textContent;
+          } else {
+            v_comment = String(td.innerHTML).replace(/<br>/g,"\n").replace(/^「/,"").replace(/」$/,"").split('\n');
+            if (td.getAttribute("class") == "say normal") {
+              // <td class="say normal">「はい」</td>
+              v_comtype = "Normal";
+            } else if (td.getAttribute("class") == "say strong") {
+              // <td class="say strong">「占いだよー　アーミヤは〇」</td>
+              v_comtype = "Strong";
+            } else if (td.getAttribute("class") == "say weak") {
+              // <td class="say weak">「それじゃあなんかウマ娘…、じゃないけどなんか似ているから<br>アーミヤを最初に占っておきましょー」</td>
+              v_comtype = "WithColor";
+            } else {
+              // <td class="say red">「＞アーミヤ<br>うん…まあ…件のビデオ発売から20周年だもんね」</td>
+              // treat as some comment.
+              v_comtype = "Unknown";
+            }
+          }
+        });
+        ret[datestring].comments.push({ speaker: villager , comment : v_comment , type : v_comtype});
+      }
     });
-    // shift all list 1 day.
-    for (var i = 0; i < datearray.length - 2; i++){
-      ret[datearray[i]].list_bitten  = ret[datearray[i+1]].list_bitten;  // (n-1) night -> n day
-      ret[datearray[i]].list_voted   = ret[datearray[i+2]].list_voted;   // (n-1) day   -> n day
-      ret[datearray[i]].list_revived = ret[datearray[i+1]].list_revived; // (n-1) night -> n day
-      ret[datearray[i]].list_cursed  = ret[datearray[i+2]].list_cursed;  // (n-1) day   -> n day
-      ret[datearray[i]].list_dnoted  = ret[datearray[i+1]].list_dnoted;  // (n-1) night -> n day
-      ret[datearray[i]].list_sudden  = ret[datearray[i+1]].list_sudden;
-      ret[datearray[i]].list_sudden.concat(ret[datearray[i+2]].list_sudden);  // (n-1) day + (n-1) night -> n day
-    }
-    if (datearray >= 2) {
-      ret[datearray[datearray.length - 2]].list_bitten  = ret[datearray[datearray.length - 1]].list_bitten;
-      ret[datearray[datearray.length - 2]].list_voted   = [];
-      ret[datearray[datearray.length - 2]].list_revived = ret[datearray[datearray.length - 1]].list_revived;
-      ret[datearray[datearray.length - 2]].list_cursed  = [];
-      ret[datearray[datearray.length - 2]].list_dnoted  = ret[datearray[datearray.length - 1]].list_dnoted;
-      ret[datearray[datearray.length - 2]].list_sudden  = ret[datearray[datearray.length - 1]].list_sudden;
-    }
-    ret[datearray[datearray.length - 1]].list_bitten  = [];
-    ret[datearray[datearray.length - 1]].list_voted   = [];
-    ret[datearray[datearray.length - 1]].list_revived = [];
-    ret[datearray[datearray.length - 1]].list_cursed  = [];
-    ret[datearray[datearray.length - 1]].list_dnoted  = [];
-    ret[datearray[datearray.length - 1]].list_sudden  = [];
-  }
+
+    // (3) vote_log:     []
+    //ret[datestring].vote_log = html2json_vote_result;
+
+    //list_voted:   [],
+    //list_cursed:  [], // Cursed  by WereCat (only in voting)
+    //list_revived: [], // Revived by WereCat
+    //list_bitten:  [],
+    //list_dnoted:  [], // dead by Death Note
+    //list_sudden:  [],
+  });
+
   return ret;
 }
 
