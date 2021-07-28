@@ -47,7 +47,7 @@ function updateCommentLog(arg, param) {
 
     var td3 = document.createElement('td');
     td3.setAttribute('style', 'display:none;visibility:hidden;width:0px;');
-    td3.innerText = '◆' + l.speaker + 'さん' + "\t" + '「' + l.comment.join('\n') + '」'
+    td3.innerText = '◆' + l.speaker + ' ' + "\t" + '「' + l.comment.join('\n') + '」'
     tr.insertAdjacentElement('beforeend', td3);
 
     return tr;

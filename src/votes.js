@@ -98,7 +98,7 @@ function updateVotes(arg) {
         vote_count[from_person] = 0;
       }
 
-      td.setAttribute('alt', from_person + "さん\t" + vote_count[from_person] +" 票\t投票先 → " + to_person + "さん");
+      td.setAttribute('alt', from_person + "\t" + vote_count[from_person] +" 票\t投票先 " + vote_count[to_person] + " 票 →\t" + to_person);
       td.innerText = "(" + vote_count[from_person] + "票)→" + f.to_villager + "(" + vote_count[to_person] + "票)";
       td.className = setColorClass(arg.input.each_player[from_person]);
       if (vote_count.is_gray_random == true) {
