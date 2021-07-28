@@ -523,6 +523,8 @@ function refreshInputField(arg) {
     // villager_list: add icon image to left side.
     var img = document.createElement('img');
     img.setAttribute("src", arg.log[base_date].players[k].icon);
+    img.setAttribute("width", "32");
+    img.setAttribute("height", "32");
     td_villager.insertAdjacentElement('afterbegin', img);
 
     // villager_list: count comments in forEach loop
