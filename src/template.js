@@ -12,7 +12,7 @@ function template_seer(arg) {
 
   var player_list = Object.keys(arg.log[today].players);
   player_list.forEach(function(k){
-    if (arg.log[today].players[k].stat == "（生存中）") {
+    if (arg.log[today].players[k].stat == "(生存中)") {
       ret.push("占いCO " + k + " ○●");
     }
   });
@@ -69,7 +69,7 @@ function template_freemason(arg) {
   var player_list = Object.keys(arg.log[today].players);
 
   player_list.forEach(function(k){
-    if (arg.log[today].players[k].stat == "（生存中）") {
+    if (arg.log[today].players[k].stat == "(生存中)") {
       if (arg.input.each_player[k].comingout == "村人") {
         ret.push("指定：" + k + " COありますか？");
       } else if (arg.input.each_player[k].comingout == "占い") {

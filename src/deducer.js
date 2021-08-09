@@ -166,7 +166,7 @@ function updateInputField(arg) {
     document.getElementById('villager-list-' + k).style.visibility = 'visible';
 
     for (var i = 2 ; i <= datearray.length ; i++) {
-      if (arg.log[datearray[i-1]].players[k].stat == "（生存中）") {
+      if (arg.log[datearray[i-1]].players[k].stat == "(生存中)") {
         // if alive : set comment count
         var datekey = datearray[i-1];
         var c = 0;
@@ -177,7 +177,7 @@ function updateInputField(arg) {
         });
         document.getElementById('stat-' + k + '-' + String(i) + '-count').innerText = "発言 "+String(c);
         if ((i > 2) &&
-            (arg.log[datearray[i-2]].players[k].stat == "（死　亡）")) {
+            (arg.log[datearray[i-2]].players[k].stat == "(死亡)")) {
           document.getElementById('stat-' + k + '-' + String(i) + '-dead_reason').innerText = "復活";
         } else {
           document.getElementById('stat-' + k + '-' + String(i) + '-dead_reason').innerText = "";
@@ -191,7 +191,7 @@ function updateInputField(arg) {
         if (result != null) { result.remove(); };
 
         if ((i <= 2) ||
-            (arg.log[datearray[i-2]].players[k].stat == "（生存中）")) {
+            (arg.log[datearray[i-2]].players[k].stat == "(生存中)")) {
           // if dead in this day
           var datestring   = datearray[i-1];
 
@@ -292,7 +292,7 @@ function updateInputField(arg) {
         // case 1.
         //   Job-target
         //   Job-result
-        if (alive_status == "（生存中）") {
+        if (alive_status == "(生存中)") {
           if ((is_initialize == true) || // just after refreshInputField() called.
               (job != arg.input.each_player[k].comingout)) {
             target_label.textContent == '';
@@ -306,14 +306,14 @@ function updateInputField(arg) {
               target.style.visibility = 'visible';
               player_list.forEach(function(v){
                 if ((i <= 2) ||
-                    ((arg.log[datearray[i-2]].players[v].stat == "（生存中）"))) {
+                    ((arg.log[datearray[i-2]].players[v].stat == "(生存中)"))) {
                   var o = document.createElement('option');
                   o.setAttribute("value", v);
                   o.innerText = v;
                   target.insertAdjacentElement('beforeend', o);
                 }
               });
-              // target.value == player_list[1st element with stat=='（生存中）']
+              // target.value == player_list[1st element with stat=='(生存中)']
 
               // deducer: result
               result_label.innerText = '結果';
@@ -529,7 +529,7 @@ function refreshInputField(arg) {
 
     // villager_list: count comments in forEach loop
     var comments = 0;
-    var stat = "（生存中）";
+    var stat = "(生存中)";
 
     tr.insertAdjacentElement('beforeend', td_villager);
 

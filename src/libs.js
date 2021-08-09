@@ -178,7 +178,7 @@ function makeComingOutList(arg) {
     var mrk  = arg.input.each_player[k].enemymark;
     var job  = arg.input.each_player[k].comingout;
 
-    if (stat == "（生存中）") {
+    if (stat == "(生存中)") {
      ret.villager_live[k] = arg.input.each_player[k];
     }
 
@@ -202,7 +202,7 @@ function makeComingOutList(arg) {
       ret.freemason_co[k]  = arg.input.each_player[k];
     } else if (job == "埋毒") {
       ret.werecat_co[k]    = arg.input.each_player[k];
-    } else if (stat == "（生存中）") { // (mrk == "村人") && (job == "村人")
+    } else if (stat == "(生存中)") { // (mrk == "村人") && (job == "村人")
         ret.villager_co[k] = arg.input.each_player[k];
     }
   });

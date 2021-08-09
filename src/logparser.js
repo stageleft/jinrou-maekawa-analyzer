@@ -186,7 +186,7 @@ function html2json_village_log(arg) {
     }
   }
 
-  // TODO : parse vote log
+  // parse vote log
   //vote_log:     []
   if (date_array.length > 1) {
     var vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
@@ -197,62 +197,69 @@ function html2json_village_log(arg) {
       ret.log[d].vote_log = vote_result[d].vote_log;
     });
   } else {
-    ret.log[village_time_section].vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
+    var vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
+    Object.keys(vote_result).forEach(d => {
+      ret.log[village_time_section].vote_log = vote_result[d].vote_log;
+    });
   }
 
-  // modify player list
+  // set player list (modify in multi_days log)
   function calc_dead_or_alive(prev_log, curr_log, character_name) {
     var ret_stat;
-    if (prev_log.players[character_name].stat == "（生存中）") {
+    if (prev_log.players[character_name].stat == "(生存中)") {
       if ((curr_log.list_bitten.includes(character_name) == true) ||
           (curr_log.list_voted.includes(character_name)  == true) || 
           (curr_log.list_sudden.includes(character_name) == true) || 
           (curr_log.list_dnoted.includes(character_name) == true) || 
           (curr_log.list_cursed.includes(character_name) == true)) {
-        ret_stat = "（死亡）";
+        ret_stat = "(死亡)";
       } else {
-        ret_stat = "（生存中）";
+        ret_stat = "(生存中)";
       }
     } else {
       if (curr_log.list_revived.includes(character_name) == true) {
-        ret_stat = "（生存中）";
+        ret_stat = "(生存中)";
       } else {
-        ret_stat = "（死亡）";
+        ret_stat = "(死亡)";
       }
     }
     return ret_stat;
   }
   var player_section = arg.body.querySelector("div.player").querySelector("tbody");
   var player_list = html2json_villager_list(player_section).players;
-  Object.keys(ret.log).sort((a,b) => a.localeCompare(b, 'jp')).forEach(log_by_day => {
-    if (log_by_day.localeCompare(date_array[date_array.length - 1], 'jp') > 0) { // log-date limitation
-      return;
-    }
-    ret.log[log_by_day].players = JSON.parse(JSON.stringify(player_list));
-    if (talk_sections.length >= 2) {
-      // if multi days log
-      if (log_by_day == "１日目の朝となりました。") {
-        Object.keys(ret.log[log_by_day].players).forEach(k => {
-          ret.log[log_by_day].players[k].stat = "（生存中）";
-        });
-      } else if ((log_by_day != logTag_d2n(log_by_day))
-              && (logTag_d2n(log_by_day) != logTag_n2d(logTag_d2n(log_by_day)))
-              && (ret.log[logTag_d2n(log_by_day)] != null)
-              && (ret.log[logTag_d2n(log_by_day)].players != null)) {
-        // if Daytime (and has Previous Daytime)
-        // all Death is treated in begin of Daytime, so dead difference is Previous Daytime.
-        var log_prev_day = logTag_n2d(logTag_d2n(log_by_day));
-        Object.keys(ret.log[log_by_day].players).forEach(k => {
-          ret.log[log_by_day].players[k].stat = calc_dead_or_alive(ret.log[log_prev_day], ret.log[log_by_day], k);
-        });
-      } else {
-        // if Nighttime (and has Previous Daytime)
-        // all Death is treated in begin of Daytime, so No Death occured.
-        var log_prev_daytime = logTag_n2d(log_by_day);
-        ret.log[log_by_day].players = JSON.parse(JSON.stringify(ret.log[log_prev_daytime].players));
+  if (date_array.length > 1) {
+      Object.keys(ret.log).sort((a,b) => a.localeCompare(b, 'jp')).forEach(log_by_day => {
+      if (log_by_day.localeCompare(date_array[date_array.length - 1], 'jp') > 0) { // log-date limitation
+        return;
       }
-    }
-  });
+      ret.log[log_by_day].players = JSON.parse(JSON.stringify(player_list));
+      if (talk_sections.length >= 2) {
+        // if multi days log
+        if (log_by_day == "１日目の朝となりました。") {
+          Object.keys(ret.log[log_by_day].players).forEach(k => {
+            ret.log[log_by_day].players[k].stat = "(生存中)";
+          });
+        } else if ((log_by_day != logTag_d2n(log_by_day))
+                && (logTag_d2n(log_by_day) != logTag_n2d(logTag_d2n(log_by_day)))
+                && (ret.log[logTag_d2n(log_by_day)] != null)
+                && (ret.log[logTag_d2n(log_by_day)].players != null)) {
+          // if Daytime (and has Previous Daytime)
+          // all Death is treated in begin of Daytime, so dead difference is Previous Daytime.
+          var log_prev_day = logTag_n2d(logTag_d2n(log_by_day));
+          Object.keys(ret.log[log_by_day].players).forEach(k => {
+            ret.log[log_by_day].players[k].stat = calc_dead_or_alive(ret.log[log_prev_day], ret.log[log_by_day], k);
+          });
+        } else {
+          // if Nighttime (and has Previous Daytime)
+          // all Death is treated in begin of Daytime, so No Death occured.
+          var log_prev_daytime = logTag_n2d(log_by_day);
+          ret.log[log_by_day].players = JSON.parse(JSON.stringify(ret.log[log_prev_daytime].players));
+        }
+      }
+    });
+  } else {
+    ret.log[village_time_section].players = JSON.parse(JSON.stringify(player_list));
+  }
 
   return ret;
 };
@@ -266,7 +273,7 @@ function html2json_villager_list(arg) {
 //              "character-name": { icon:value, stat:value },
 //              ...
 //            }
-//           stat:value : "（生存中）" or "（死亡）"
+//           stat:value : "(生存中)" or "(死亡)"
   var ret = {};
   var re = new RegExp('^\.\/', '');
 

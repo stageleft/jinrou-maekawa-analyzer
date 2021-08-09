@@ -23,7 +23,7 @@
           players: {
             "character-name": {
               icon:"icon_url(absolute URL)", 
-              stat:"string, （生存中） or （死亡）" 
+              stat:"string, (生存中) or (死亡)" 
             },
             "character-name": { icon:"", stat:"" },
             ...
