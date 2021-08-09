@@ -88,7 +88,6 @@ function updateVotes(arg) {
     function proc_set_vote_result(f, vote_count){
       var from_person = f.from_villager.trim();
       var to_person = f.to_villager.trim();
-      // TODO: replace元の文字クラスを特定する。 issue #104 クローズ後の残件であり、１文字ごとにissue化する。
       var tr = body.querySelector('#vote-from-' + from_person.replace(/([\ -\/\:-\@\[-\`\{-\~])/g, '\\$1'));
 
       // <td><b>ｽｺﾞｲｶﾀｲｱｲｽ</b>さん</td><td>0 票</td><td>投票先 → <b>結城蜜柑</b>さん</td>
@@ -98,7 +97,8 @@ function updateVotes(arg) {
         vote_count[from_person] = 0;
       }
 
-      td.setAttribute('alt', from_person + "\t" + vote_count[from_person] +" 票\t投票先 " + vote_count[to_person] + " 票 →\t" + to_person);
+      td.setAttribute('alt', from_person + "\t" + vote_count[from_person] +" 票\t投票先 1 票 →\t" + to_person);
+      // TODO ; 権力者の実装（enhanced）
       td.innerText = "(" + vote_count[from_person] + "票)→" + f.to_villager + "(" + vote_count[to_person] + "票)";
       td.className = setColorClass(arg.input.each_player[from_person]);
       if (vote_count.is_gray_random == true) {

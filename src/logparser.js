@@ -140,11 +140,11 @@ function html2json_village_log(arg) {
       } else if (dead_reason.match("無残な姿で発見されました")) {
         ret.log[date_array[date_count]].list_bitten.push(dead_person);
       } else if (dead_reason.match("投票の結果処刑されました")) {
-        ret.log[date_array[date_count]].list_voted.push(dead_person);
         date_count = date_count + 1;
         if (date_count >= date_array.length) {
           break;
         }  
+        ret.log[date_array[date_count]].list_voted.push(dead_person);
       } else {
         ret.log[date_array[date_count]].list_sudden.push(dead_person);      
       }
