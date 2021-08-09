@@ -324,7 +324,7 @@ function html2log(arg, datestring_from_header) {
 //          },
 //          "date-string":{},
 //          ...
-//   type:value : "Normal" or "Strong" or "WithColor"
+//   type:value : "Normal" or "Strong" or "WithColor" or "Red" or "Green" or "Unknown"
   var ret = {};
 
   // set each date log to return value
@@ -382,8 +382,13 @@ function html2log(arg, datestring_from_header) {
             } else if (td.getAttribute("class") == "say weak") {
               // <td class="say weak">「それじゃあなんかウマ娘…、じゃないけどなんか似ているから<br>アーミヤを最初に占っておきましょー」</td>
               v_comtype = "WithColor";
-            } else {
+            } else if (td.getAttribute("class") == "say red") {
               // <td class="say red">「＞アーミヤ<br>うん…まあ…件のビデオ発売から20周年だもんね」</td>
+              v_comtype = "Red";
+            } else if (td.getAttribute("class") == "say green") {
+              // <td class="say green">「＞佐久間さん　この村初めてとのことですけども<br>人狼自体は別に初めてではない感じで合ってますか？」</td>
+              v_comtype = "Green";
+            } else {
               // treat as some comment.
               v_comtype = "Unknown";
             }
