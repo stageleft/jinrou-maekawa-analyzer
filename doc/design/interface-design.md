@@ -32,7 +32,7 @@
             {
               speaker:"string",
               comment:"string",
-              type:"string, Normal or Strong or WithColor"
+              type:"string, Normal or Strong or WithColor or Red or Green or Unknown"
             },
             { speaker:"",  comment:"", type:"string" },
             ...

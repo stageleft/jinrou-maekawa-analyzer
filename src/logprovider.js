@@ -41,7 +41,11 @@ function updateCommentLog(arg, param) {
     if (l.type == 'Strong'){
       td2.setAttribute('style', 'font-size: large;');
     } else if (l.type == 'WithColor'){
-      td2.setAttribute('style', 'color: #6666ee;');
+      td2.setAttribute('style', 'color: #1E90FF;');
+    } else if (l.type == 'Red'){
+      td2.setAttribute('style', 'color: #ff0000;');
+    } else if (l.type == 'Green'){
+      td2.setAttribute('style', 'color: #006633;');
     }
     tr.insertAdjacentElement('beforeend', td2);
 
