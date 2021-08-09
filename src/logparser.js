@@ -28,14 +28,68 @@ function html2json_village_log(arg) {
 //          }
 //          
   var ret = {village_number:null, log:{}};
+
   // parse village number
   var village_number_section = arg.body.querySelector(".room").childNodes[1].textContent;
   ret.village_number = village_number_section.replace(/^.*\[/i, '').replace(/番地\].*$/i, '');
 
+  // parse day/night 
+  var village_time_section = null;
+  var is_nigittime = false;
+  for (var t of arg.head.getElementsByTagName('link')) {
+    if (t.rel == "stylesheet"){
+      if (t.href.match(/game_beforegame.css/)) {
+        village_time_section = "１日目の朝となりました。";
+      } else if (t.href.match(/game_night.css/)) {
+        var night_number = arg.body.textContent.match(/[0-9]+ 日目/)[0].match(/[0-9]+/)[0];
+        village_time_section = night_number + "日目の夜となりました。";
+        is_nigittime = true;
+      } else if (t.href.match(/game_day.css/)) {
+        var day_number = arg.body.textContent.match(/[0-9]+ 日目/)[0].match(/[0-9]+/)[0];
+        village_time_section = day_number + "日目の朝となりました。";
+      } else if (t.href.match(/game_aftergame.css/)) {
+        var village_winner_section = arg.body.getElementsByClassName('winner')[0];
+        if (village_winner_section.className == 'winner winner-human') {
+          // in Maekawa : 
+          //    <table id="winner" class="winner winner-human"><tbody><tr>
+          //    <td>[村人勝利] 村人たちは人狼の血を根絶することに成功しました</td>
+          //    </tr></tbody></table>
+          // in Wamamete : 
+          //    <img src="./img/hum.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「村　人」の勝利です！</font>(19/08/12 02:05:13)
+          village_time_section = "「村　人」の勝利です！";
+        } else if (village_winner_section.className == 'winner winner-wolf'){
+          // in Maekawa : 
+          //    <table id="winner" class="winner winner-wolf"><tr>
+          //    <td>[人狼・狂人勝利] 最後の一人を食い殺すと人狼達は次の獲物を求めて村を後にした</td>
+          //    </tr></table>
+          // in Wamamete : 
+          //    <img src="./img/wlf.gif" width="32" height="32" border="0"> <font size="+2" color="#dd0000">「<font color="#ff0000">人　狼</font>」の勝利です！</font>(19/08/04 02:57:29)
+          village_time_section = "「人　狼」の勝利です！";
+        } else if (village_winner_section.className == 'winner winner-fox'){
+          //    <table id="winner" class="winner winner-fox"><tr>
+          //    <td>[妖狐勝利] マヌケな人狼どもを騙すことなど容易いことだ</td>
+          //    </tr></table>
+          // in Wamamete : 
+          // <img src="./img/fox.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「<font color="#ffcc33">妖　狐</font>」の勝利です！</font>(19/08/12 00:30:03)
+          village_time_section = "「妖　狐」の勝利です！";          
+        } else {
+          // in Maekawa : 
+          //    <table id="winner" class="winner winner-draw"><tr>
+          //    <td>[引き分け] 引き分けとなりました</td>
+          //    </tr></table>
+          // in Wamamete : 
+          // <img src="./img/ampm.gif" width="32" height="32" border="0"> <font size="+2" color="#ff6600">「引き分け」です！</font>(19/08/13 00:22:35)
+          village_time_section = "「引き分け」です！";
+        }
+        // TODO : 恋人勝利
+      } // else ignore css setting : common css such as 'game_view.css'
+    }
+  }
+
   // parse player list
   // parse talk table list
   var talk_sections = arg.body.querySelectorAll("table.talk");
-  ret.log = html2log(talk_sections);
+  ret.log = html2log(talk_sections, village_time_section);
 
   // parse dead/alive player list
   //list_voted:   [],
@@ -54,52 +108,97 @@ function html2json_village_log(arg) {
   // -- voted example
   //<tr class="dead-type-vote"><td>ナイスネイチャ は投票の結果処刑されました</td></tr>
   var [date_array, base_date] = createDateArray(ret);
-  date_array.forEach(d => {
-    // All Death and Revive is Treated in begin of Daytime.
-    ret.log[d].list_voted   = []; // dead in end of daytime, so record to next Daytime.
-    ret.log[d].list_cursed  = []; // dead in end of daytime, so record to next Daytime.
-    ret.log[d].list_revived = [], // revived in begin of this Daytime.
-    ret.log[d].list_bitten  = []; // dead in begin of this Daytime.
-    ret.log[d].list_dnoted  = []; // dead in begin of this Daytime.
-    ret.log[d].list_sudden  = []; // dead in any time, so record to next Daytime.
-    // メモ：背徳と恋人は死因として実装しない。理由のない死亡につき、その場の突然死として扱う。
-  });
-  var list_dead_all = [];
-  arg.body.querySelectorAll("table.dead-type").forEach(tb => {
-    var td_list = tb.querySelectorAll("td");
-    td_list.forEach(td => {
-      list_dead_all.push(td.innerText);
+  if (date_array.length > 1) {
+    // case if multi days
+    date_array.forEach(d => {
+      // All Death and Revive is Treated in begin of Daytime.
+      ret.log[d].list_voted   = []; // dead in end of daytime, so record to next Daytime.
+      ret.log[d].list_cursed  = []; // dead in end of daytime, so record to next Daytime.
+      ret.log[d].list_revived = [], // revived in begin of this Daytime.
+      ret.log[d].list_bitten  = []; // dead in begin of this Daytime.
+      ret.log[d].list_dnoted  = []; // dead in begin of this Daytime.
+      ret.log[d].list_sudden  = []; // dead in any time, so record to next Daytime.
+      // メモ：背徳と恋人は死因として実装しない。理由のない死亡につき、その場の突然死として扱う。
     });
-  });
-  var date_count = 1;
-  for (var dead_count = list_dead_all.length - 1; dead_count >= 0; dead_count--) {
-    // メモ：デスノ・猫呪いは死因として実装しない（ログが見当たらないため）。理由のない死亡につき、その場の突然死として扱う。
-    // メモ：猫蘇生は実装しない（ログが見当たらないため）。
-    // メモ：呪殺・猫噛みは無残とする。
-    var [dead_person, dead_reason] = list_dead_all[dead_count].split(' ');
-    if (list_dead_all[dead_count].match(/^\(.*\)$/g)) {
-      // skip if dead_reason is like "(xx はyyになったようです)" style
-    } else if (dead_reason == undefined) {
-      // skip if "人狼は護衛に阻まれたようです"
-    } else if (dead_reason.match("無残な姿で発見されました")) {
-      ret.log[date_array[date_count]].list_bitten.push(dead_person);
-    } else if (dead_reason.match("投票の結果処刑されました")) {
-      date_count = date_count + 1;
-      if (date_count >= date_array.length) {
-        break;
+    var list_dead_all = [];
+    arg.body.querySelectorAll("table.dead-type").forEach(tb => {
+      var td_list = tb.querySelectorAll("td");
+      td_list.forEach(td => {
+        list_dead_all.push(td.innerText);
+      });
+    });
+    var date_count = 1;
+    for (var dead_count = list_dead_all.length - 1; dead_count >= 0; dead_count--) {
+      // メモ：デスノ・猫呪いは死因として実装しない（ログが見当たらないため）。理由のない死亡につき、その場の突然死として扱う。
+      // メモ：猫蘇生は実装しない（ログが見当たらないため）。
+      // メモ：呪殺・猫噛みは無残とする。
+      var [dead_person, dead_reason] = list_dead_all[dead_count].split(' ');
+      if (list_dead_all[dead_count].match(/^\(.*\)$/g)) {
+        // skip if dead_reason is like "(xx はyyになったようです)" style
+      } else if (dead_reason == undefined) {
+        // skip if "人狼は護衛に阻まれたようです"
+      } else if (dead_reason.match("無残な姿で発見されました")) {
+        ret.log[date_array[date_count]].list_bitten.push(dead_person);
+      } else if (dead_reason.match("投票の結果処刑されました")) {
+        ret.log[date_array[date_count]].list_voted.push(dead_person);
+        date_count = date_count + 1;
+        if (date_count >= date_array.length) {
+          break;
+        }  
+      } else {
+        ret.log[date_array[date_count]].list_sudden.push(dead_person);      
       }
-      ret.log[date_array[date_count]].list_voted.push(dead_person);
-    } else {
-      ret.log[date_array[date_count]].list_sudden.push(dead_person);      
+    }
+  } else {
+    // All Death and Revive is Treated in begin of Daytime.
+    ret.log[village_time_section].list_voted   = []; // dead in end of daytime, so record to next Daytime.
+    ret.log[village_time_section].list_cursed  = []; // dead in end of daytime, so record to next Daytime.
+    ret.log[village_time_section].list_revived = [], // revived in begin of this Daytime.
+    ret.log[village_time_section].list_bitten  = []; // dead in begin of this Daytime.
+    ret.log[village_time_section].list_dnoted  = []; // dead in begin of this Daytime.
+    ret.log[village_time_section].list_sudden  = []; // dead in any time, so record to next Daytime.
+    // メモ：背徳と恋人は死因として実装しない。理由のない死亡につき、その場の突然死として扱う。
+    // case if single day
+    var list_dead_all = [];
+    arg.body.querySelectorAll("table.dead-type").forEach(tb => {
+      var td_list = tb.querySelectorAll("td");
+      td_list.forEach(td => {
+        list_dead_all.push(td.innerText);
+      });
+    });
+    for (var dead_count = list_dead_all.length - 1; dead_count >= 0; dead_count--) {
+      var [dead_person, dead_reason] = list_dead_all[dead_count].split(' ');
+      if (dead_reason.match("投票の結果処刑されました")) {
+        ret.log[village_time_section].list_voted.push(dead_person);
+        continue;
+      }
+      if (is_nigittime == false) {
+        if (list_dead_all[dead_count].match(/^\(.*\)$/g)) {
+          // skip if dead_reason is like "(xx はyyになったようです)" style
+        } else if (dead_reason == undefined) {
+          // skip if "人狼は護衛に阻まれたようです"
+        } else if (dead_reason.match("無残な姿で発見されました")) {
+          ret.log[village_time_section].list_bitten.push(dead_person);
+        } else {
+          ret.log[village_time_section].list_sudden.push(dead_person);      
+        }
+      }  
     }
   }
 
   // TODO : parse vote log
   //vote_log:     []
-  var vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
-  Object.keys(vote_result).forEach(d => {
-    ret.log[d].vote_log = vote_result[d].vote_log;
-  });
+  if (date_array.length > 1) {
+    var vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
+    Object.keys(vote_result).forEach(d => {
+      if (ret.log[d] == null){
+        ret.log[d] = {vote_log: null};
+      }
+      ret.log[d].vote_log = vote_result[d].vote_log;
+    });
+  } else {
+    ret.log[village_time_section].vote_result = html2json_vote_result(arg.body.querySelectorAll("table.vote-list"));
+  }
 
   // modify player list
   function calc_dead_or_alive(prev_log, curr_log, character_name) {
@@ -201,7 +300,7 @@ function html2json_villager_list(arg) {
   return { players: ret };
 }
 
-function html2log(arg) {
+function html2log(arg, datestring_from_header) {
 // input  : Array of NodeList
 //          each Nodelist is <table id="---"></table>
 //          id is below:
@@ -224,20 +323,26 @@ function html2log(arg) {
   // set each date log to return value
   arg.forEach(element => {
     // (1) datestring
-    var date_id = element.getAttribute("id");
     var datestring = null;
-    if (date_id == "beforegame") {
-      datestring = "１日目の朝となりました。";
-    } else if (date_id == "aftergame") {
-      return; // means continue of forEach()
-    } else if (date_id.match(/_day$/i)) {
-      var day_no = date_id.replace(/^date/i,'').replace(/_day$/i,'');
-      datestring = day_no + "日目の朝となりました。";
+    if (datestring_from_header == null) {
+      // (1-A) if multidate
+      var date_id = element.getAttribute("id");
+      if (date_id == "beforegame") {
+        datestring = "１日目の朝となりました。";
+      } else if (date_id == "aftergame") {
+        return; // means continue of forEach()
+      } else if (date_id.match(/_day$/i)) {
+        var day_no = date_id.replace(/^date/i,'').replace(/_day$/i,'');
+        datestring = day_no + "日目の朝となりました。";
+      } else {
+        var day_no = date_id.replace(/^date/i,'');
+        datestring = day_no + "日目の夜となりました。";
+      }
     } else {
-      var day_no = date_id.replace(/^date/i,'');
-      datestring = day_no + "日目の夜となりました。";
+      // (1-2) if singledate
+      datestring = datestring_from_header;
     }
-    ret[datestring] = {comments:[]};
+    ret[datestring] = {comments:[]};  
 
     // (2) comments
     var tr_list = element.querySelectorAll("tr");

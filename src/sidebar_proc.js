@@ -36,12 +36,12 @@ function recvLog_proc(request, sender, sendResponse) {
   // Parse and Update village log
   var is_same_village = true;
   try {
-     var parser = new DOMParser();
-     var receivedLog = parser.parseFromString(request.html_log, "text/html");
-     var parsedLog = html2json_village_log(receivedLog);
-     if (parsedLog != null) {
+    var parser = new DOMParser();
+    var receivedLog = parser.parseFromString(request.html_log, "text/html");
+    var parsedLog = html2json_village_log(receivedLog);
+    if (parsedLog != null) {
       if ( village_number != parsedLog.village_number ) {
-         is_same_village = false;
+        is_same_village = false;
       }
       if (value[parsedLog.village_number] == null) {
         Object.assign(value, {[parsedLog.village_number]:parsedLog });
@@ -55,7 +55,7 @@ function recvLog_proc(request, sender, sendResponse) {
         }
         raw_log[parsedLog.village_number].log[Object.keys(parsedLog.log)[0]] = request.html_log;
       }
-     }
+    }
   } catch(e) {
     // exception case
     //   (1) re-login to village: html2json_village_log() must be aborted.
@@ -78,9 +78,8 @@ function recvLog_proc(request, sender, sendResponse) {
     // exception case
     //   (1) 事件前日
     //   (2) illegal case
-    console.log(e.name + ':' + e.message + "\r\n" + e.stack);
-    // refresh input field for recovery.
     try {
+      // refresh input field for recovery.
       refreshInputField(value[village_number]);
     } catch(e) {
       // exception case

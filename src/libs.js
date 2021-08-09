@@ -21,14 +21,8 @@ function createDateArray(arg) {
   if (arg.log["１日目の朝となりました。"] != null) {
     ret.push("１日目の朝となりました。");
   }
-  // day 2
-  if (arg.log["2日目の朝となりました。"] != null) {
-    ret.push("2日目の朝となりました。");
-  } else if (arg.log["１日目の夜となりました。"] != null) {
-    ret.push("１日目の夜となりました。");
-  }
-  // day 3..N
-  for (var i = 2 ; i < (date_count + 1) ; i++ ) {
+  // day 2..N
+  for (var i = 1 ; i < (date_count + 1) ; i++ ) {
     if (arg.log[String(i+1) + "日目の朝となりました。"] != null) {
       ret.push(String(i+1) + "日目の朝となりました。");
     } else if (arg.log[String(i) + "日目の夜となりました。"] != null) {

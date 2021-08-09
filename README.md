@@ -1,10 +1,10 @@
 # about Jinrou-Maekawa-Analyzer
 
-Support tool for online "Are You a Werewolf?" game in Maekkawa Server ( http://alicegame.xsrv.jp/takane/ ).
+Support tool for online ["Are You a Werewolf?" game in Maekkawa Server](http://alicegame.xsrv.jp/takane/).
 You get easier to correct and analyze Chat Log.
 It is Sidebar Plugins for Mozilla Firefox.
 
-Firefoxのサイドバーを用いた、人狼ゲーム・前川鯖 http://alicegame.xsrv.jp/takane/ 向けログリアルタイム分析ツール。
+Firefoxのサイドバーを用いた、 [人狼ゲーム・前川鯖](http://alicegame.xsrv.jp/takane/) 向けログリアルタイム分析ツール。
 
 ## Support Language
 
